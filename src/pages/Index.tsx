@@ -124,8 +124,13 @@ const Index = () => {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto scrollbar-thin px-4">
           {activeConv && activeConv.messages.length > 0 ? (
-            activeConv.messages.map((msg) => (
-              <ChatMessage key={msg.id} message={msg} />
+             activeConv.messages.map((msg) => (
+              <ChatMessage
+                key={msg.id}
+                message={msg}
+                onToolApprove={(id) => handleToolDecision(id, true)}
+                onToolDeny={(id) => handleToolDecision(id, false)}
+              />
             ))
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground">

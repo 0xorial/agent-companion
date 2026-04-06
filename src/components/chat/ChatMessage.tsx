@@ -5,9 +5,11 @@ import { Bot, User } from "lucide-react";
 
 interface ChatMessageProps {
   message: ChatMessageType;
+  onToolApprove?: (toolCallId: string) => void;
+  onToolDeny?: (toolCallId: string) => void;
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, onToolApprove, onToolDeny }: ChatMessageProps) {
   const isUser = message.role === "user";
 
   return (
@@ -40,7 +42,12 @@ export function ChatMessage({ message }: ChatMessageProps) {
           </div>
 
           {message.toolCalls?.map((tc) => (
-            <ToolCallBlock key={tc.id} toolCall={tc} />
+            <ToolCallBlock
+              key={tc.id}
+              toolCall={tc}
+              onApprove={onToolApprove}
+              onDeny={onToolDeny}
+            />
           ))}
         </div>
       </div>

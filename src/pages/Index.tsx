@@ -54,6 +54,27 @@ const Index = () => {
     );
   };
 
+  const handleToolDecision = (toolCallId: string, approved: boolean) => {
+    setConversations((prev) =>
+      prev.map((c) => ({
+        ...c,
+        messages: c.messages.map((msg) => ({
+          ...msg,
+          toolCalls: msg.toolCalls?.map((tc) =>
+            tc.id === toolCallId
+              ? {
+                  ...tc,
+                  status: approved ? ("completed" as const) : ("failed" as const),
+                  result: approved ? "Approved by user — executed successfully." : "Denied by user.",
+                  completedAt: Date.now(),
+                }
+              : tc
+          ),
+        })),
+      }))
+    );
+  };
+
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       {/* Left Sidebar */}
@@ -103,8 +124,13 @@ const Index = () => {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto scrollbar-thin px-4">
           {activeConv && activeConv.messages.length > 0 ? (
-            activeConv.messages.map((msg) => (
-              <ChatMessage key={msg.id} message={msg} />
+             activeConv.messages.map((msg) => (
+              <ChatMessage
+                key={msg.id}
+                message={msg}
+                onToolApprove={(id) => handleToolDecision(id, true)}
+                onToolDeny={(id) => handleToolDecision(id, false)}
+              />
             ))
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground">

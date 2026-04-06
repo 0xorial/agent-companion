@@ -7,6 +7,7 @@ import { ToolRegistry } from "@/components/tools/ToolRegistry";
 import { mockConversations, mockTools } from "@/data/mockData";
 import { Conversation, ToolDefinition, ToolPermission, ChatMessage as ChatMessageType } from "@/types/agent";
 import { Bot, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Wrench, Activity } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
   const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
@@ -88,7 +89,8 @@ const Index = () => {
           <span className="text-sm font-medium text-foreground truncate">
             {activeConv?.title ?? "No conversation"}
           </span>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-1">
+            <ThemeToggle />
             <button
               onClick={() => setRightOpen(!rightOpen)}
               className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground"

@@ -54,6 +54,27 @@ const Index = () => {
     );
   };
 
+  const handleToolDecision = (toolCallId: string, approved: boolean) => {
+    setConversations((prev) =>
+      prev.map((c) => ({
+        ...c,
+        messages: c.messages.map((msg) => ({
+          ...msg,
+          toolCalls: msg.toolCalls?.map((tc) =>
+            tc.id === toolCallId
+              ? {
+                  ...tc,
+                  status: approved ? ("completed" as const) : ("failed" as const),
+                  result: approved ? "Approved by user — executed successfully." : "Denied by user.",
+                  completedAt: Date.now(),
+                }
+              : tc
+          ),
+        })),
+      }))
+    );
+  };
+
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       {/* Left Sidebar */}

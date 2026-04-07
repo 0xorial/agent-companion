@@ -39,6 +39,23 @@ export interface ChatMessage {
   llmRequest?: LLMRequest;
 }
 
+export interface ModelPreset {
+  temperature: number;
+  maxTokens: number;
+  topP: number;
+}
+
+export interface AgentDefinition {
+  id: string;
+  name: string;
+  description: string;
+  toolIds: string[];
+  systemPrompt: string;
+  defaultModel: string;
+  defaultPreset: ModelPreset;
+  icon?: string;
+}
+
 export interface Conversation {
   id: string;
   title: string;

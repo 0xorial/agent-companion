@@ -1,4 +1,4 @@
-import { Conversation, ToolDefinition } from "@/types/agent";
+import { AgentDefinition, Conversation, ToolDefinition } from "@/types/agent";
 
 export const mockTools: ToolDefinition[] = [
   { id: "1", name: "file_read", description: "Read contents of a file from the filesystem", permission: "allow", category: "Filesystem" },

@@ -12,6 +12,54 @@ export const mockTools: ToolDefinition[] = [
   { id: "9", name: "send_email", description: "Send an email via configured SMTP", permission: "forbid", category: "Communication" },
 ];
 
+export const mockModels = [
+  "claude-sonnet-4-20250514",
+  "claude-opus-4-20250514",
+  "gpt-4o",
+  "gpt-4o-mini",
+  "gemini-2.5-pro",
+  "deepseek-r1",
+];
+
+export const mockAgents: AgentDefinition[] = [
+  {
+    id: "a1",
+    name: "General Assistant",
+    description: "All-purpose coding assistant with full tool access",
+    toolIds: ["1", "2", "3", "4", "5", "6", "7", "8"],
+    systemPrompt: "You are a helpful coding assistant...",
+    defaultModel: "claude-sonnet-4-20250514",
+    defaultPreset: { temperature: 0.7, maxTokens: 4096, topP: 1 },
+  },
+  {
+    id: "a2",
+    name: "Code Reviewer",
+    description: "Read-only reviewer — no write or execute permissions",
+    toolIds: ["1", "4", "5", "6"],
+    systemPrompt: "You are a thorough code reviewer...",
+    defaultModel: "claude-sonnet-4-20250514",
+    defaultPreset: { temperature: 0.3, maxTokens: 8192, topP: 0.9 },
+  },
+  {
+    id: "a3",
+    name: "DevOps Agent",
+    description: "Deployment, CI/CD, and infrastructure management",
+    toolIds: ["1", "2", "3", "7"],
+    systemPrompt: "You are a DevOps engineer...",
+    defaultModel: "gpt-4o",
+    defaultPreset: { temperature: 0.5, maxTokens: 4096, topP: 1 },
+  },
+  {
+    id: "a4",
+    name: "Research Agent",
+    description: "Web research and data analysis specialist",
+    toolIds: ["4", "5", "6", "8"],
+    systemPrompt: "You are a research specialist...",
+    defaultModel: "gemini-2.5-pro",
+    defaultPreset: { temperature: 0.8, maxTokens: 16384, topP: 1 },
+  },
+];
+
 export const mockConversations: Conversation[] = [
   {
     id: "1",

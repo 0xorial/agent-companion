@@ -4,8 +4,8 @@ import { ChatMessage } from "@/components/chat/ChatMessage";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ActivityPanel } from "@/components/panels/ActivityPanel";
 import { ToolRegistry } from "@/components/tools/ToolRegistry";
-import { mockConversations, mockTools } from "@/data/mockData";
-import { Conversation, ToolDefinition, ToolPermission, ChatMessage as ChatMessageType } from "@/types/agent";
+import { mockConversations, mockTools, mockAgents, mockModels } from "@/data/mockData";
+import { Conversation, ToolDefinition, ToolPermission, ChatMessage as ChatMessageType, ModelPreset } from "@/types/agent";
 import { Bot, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Wrench, Activity } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -16,6 +16,10 @@ const Index = () => {
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
   const [rightTab, setRightTab] = useState<"activity" | "tools">("activity");
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(mockAgents[0]?.id ?? null);
+  const [selectedToolIds, setSelectedToolIds] = useState<string[]>(mockTools.map((t) => t.id));
+  const [modelOverride, setModelOverride] = useState<string | null>(null);
+  const [presetOverride, setPresetOverride] = useState<Partial<ModelPreset>>({});
 
   const activeConv = conversations.find((c) => c.id === activeConvId) ?? null;
 
@@ -72,6 +76,22 @@ const Index = () => {
           ),
         })),
       }))
+    );
+  };
+
+  const handleAgentChange = (agentId: string | null) => {
+    setSelectedAgentId(agentId);
+    setModelOverride(null);
+    setPresetOverride({});
+    if (agentId) {
+      const agent = mockAgents.find((a) => a.id === agentId);
+      if (agent) setSelectedToolIds(agent.toolIds);
+    }
+  };
+
+  const handleToolToggle = (toolId: string) => {
+    setSelectedToolIds((prev) =>
+      prev.includes(toolId) ? prev.filter((id) => id !== toolId) : [...prev, toolId]
     );
   };
 
@@ -141,7 +161,20 @@ const Index = () => {
         </div>
 
         {/* Input */}
-        <ChatInput onSend={handleSend} />
+        <ChatInput
+          onSend={handleSend}
+          agents={mockAgents}
+          tools={tools}
+          models={mockModels}
+          selectedAgentId={selectedAgentId}
+          onAgentChange={handleAgentChange}
+          selectedToolIds={selectedToolIds}
+          onToolToggle={handleToolToggle}
+          modelOverride={modelOverride}
+          onModelOverride={setModelOverride}
+          presetOverride={presetOverride}
+          onPresetOverride={setPresetOverride}
+        />
       </div>
 
       {/* Right Panel */}

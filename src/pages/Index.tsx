@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ConversationList } from "@/components/sidebar/ConversationList";
-import { ChatMessage } from "@/components/chat/ChatMessage";
+import { ChatMessageList } from "@/components/chat/ChatMessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ActivityPanel } from "@/components/panels/ActivityPanel";
 import { ToolRegistry } from "@/components/tools/ToolRegistry";

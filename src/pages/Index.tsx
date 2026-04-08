@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ConversationList } from "@/components/sidebar/ConversationList";
-import { ChatMessage } from "@/components/chat/ChatMessage";
+import { ChatMessageList } from "@/components/chat/ChatMessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ActivityPanel } from "@/components/panels/ActivityPanel";
 import { ToolRegistry } from "@/components/tools/ToolRegistry";
@@ -142,23 +142,11 @@ const Index = () => {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto scrollbar-thin px-4">
-          {activeConv && activeConv.messages.length > 0 ? (
-             activeConv.messages.map((msg) => (
-              <ChatMessage
-                key={msg.id}
-                message={msg}
-                onToolApprove={(id) => handleToolDecision(id, true)}
-                onToolDeny={(id) => handleToolDecision(id, false)}
-              />
-            ))
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-              <Bot className="w-10 h-10 mb-3 text-primary/30" />
-              <p className="text-sm">Start a conversation</p>
-            </div>
-          )}
-        </div>
+        <ChatMessageList
+          messages={activeConv?.messages ?? []}
+          onToolApprove={(id) => handleToolDecision(id, true)}
+          onToolDeny={(id) => handleToolDecision(id, false)}
+        />
 
         {/* Input */}
         <ChatInput

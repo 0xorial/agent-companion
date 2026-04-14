@@ -129,6 +129,8 @@ const Index = () => {
           activeId={activeConvId}
           onSelect={setActiveConvId}
           onNew={handleNewChat}
+          onDelete={handleDeleteConversations}
+          onMove={handleMoveConversations}
         />
       </div>
 

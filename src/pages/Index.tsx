@@ -35,6 +35,21 @@ const Index = () => {
     setActiveConvId(newConv.id);
   };
 
+  const handleDeleteConversations = (ids: string[]) => {
+    const idSet = new Set(ids);
+    setConversations((prev) => prev.filter((c) => !idSet.has(c.id)));
+    if (activeConvId && idSet.has(activeConvId)) {
+      setActiveConvId(conversations.find((c) => !idSet.has(c.id))?.id ?? null);
+    }
+  };
+
+  const handleMoveConversations = (ids: string[], group: string | undefined) => {
+    const idSet = new Set(ids);
+    setConversations((prev) =>
+      prev.map((c) => (idSet.has(c.id) ? { ...c, group } : c))
+    );
+  };
+
   const handleSend = (content: string) => {
     if (!activeConvId) return;
     const msg: ChatMessageType = {
@@ -114,6 +129,8 @@ const Index = () => {
           activeId={activeConvId}
           onSelect={setActiveConvId}
           onNew={handleNewChat}
+          onDelete={handleDeleteConversations}
+          onMove={handleMoveConversations}
         />
       </div>
 

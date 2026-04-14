@@ -65,6 +65,9 @@ export const mockConversations: Conversation[] = [
     id: "1",
     title: "Refactor auth middleware",
     group: "Work",
+    createdAt: Date.now() - 3600000,
+    updatedAt: Date.now() - 1800000,
+    messages: [
       {
         id: "m1",
         role: "user",
@@ -118,6 +121,9 @@ export const mockConversations: Conversation[] = [
     id: "2",
     title: "Deploy to production",
     group: "DevOps",
+    createdAt: Date.now() - 600000,
+    updatedAt: Date.now() - 60000,
+    messages: [
       {
         id: "m10",
         role: "user",

@@ -64,9 +64,7 @@ export const mockConversations: Conversation[] = [
   {
     id: "1",
     title: "Refactor auth middleware",
-    createdAt: Date.now() - 3600000,
-    updatedAt: Date.now() - 1800000,
-    messages: [
+    group: "Work",
       {
         id: "m1",
         role: "user",
@@ -119,9 +117,7 @@ export const mockConversations: Conversation[] = [
   {
     id: "2",
     title: "Deploy to production",
-    createdAt: Date.now() - 600000,
-    updatedAt: Date.now() - 60000,
-    messages: [
+    group: "DevOps",
       {
         id: "m10",
         role: "user",
@@ -187,6 +183,7 @@ export const mockConversations: Conversation[] = [
     title: "Database migration plan",
     createdAt: Date.now() - 86400000,
     updatedAt: Date.now() - 80000000,
+    group: "DevOps",
     messages: [],
   },
   {
@@ -194,6 +191,7 @@ export const mockConversations: Conversation[] = [
     title: "API rate limiter design",
     createdAt: Date.now() - 172800000,
     updatedAt: Date.now() - 170000000,
+    group: "Work",
     messages: [],
   },
 ];

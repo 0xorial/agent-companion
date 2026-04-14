@@ -22,7 +22,8 @@ interface ConversationListProps {
 export function ConversationList({ conversations, activeId, onSelect, onNew, onDelete, onMove }: ConversationListProps) {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [selectMode, setSelectMode] = useState(false);
+
+  const selectMode = selectedIds.size > 0;
 
   const grouped = useMemo(() => {
     const groups: Record<string, Conversation[]> = {};
@@ -51,7 +52,8 @@ export function ConversationList({ conversations, activeId, onSelect, onNew, onD
     });
   };
 
-  const toggleSelect = (id: string) => {
+  const toggleSelect = (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setSelectedIds((prev) => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
@@ -59,10 +61,7 @@ export function ConversationList({ conversations, activeId, onSelect, onNew, onD
     });
   };
 
-  const exitSelectMode = () => {
-    setSelectMode(false);
-    setSelectedIds(new Set());
-  };
+  const exitSelectMode = () => setSelectedIds(new Set());
 
   const handleDelete = () => {
     if (selectedIds.size === 0) return;
@@ -76,39 +75,57 @@ export function ConversationList({ conversations, activeId, onSelect, onNew, onD
     exitSelectMode();
   };
 
-  const renderConv = (conv: Conversation) => (
-    <div key={conv.id} className="flex items-center gap-1">
-      {selectMode && (
-        <Checkbox
-          checked={selectedIds.has(conv.id)}
-          onCheckedChange={() => toggleSelect(conv.id)}
-          className="shrink-0 ml-1"
-        />
-      )}
-      <button
-        onClick={() => selectMode ? toggleSelect(conv.id) : onSelect(conv.id)}
-        className={`flex-1 text-left px-3 py-2.5 rounded-md text-sm transition-colors group ${
+  const renderConv = (conv: Conversation) => {
+    const isSelected = selectedIds.has(conv.id);
+    return (
+      <div
+        key={conv.id}
+        className={`relative flex items-center rounded-md text-sm transition-colors group/conv ${
           activeId === conv.id && !selectMode
             ? "bg-secondary text-foreground"
-            : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+            : isSelected
+              ? "bg-primary/10 text-foreground"
+              : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
         }`}
       >
-        <div className="flex items-center gap-2">
-          <MessageSquare className="w-3.5 h-3.5 shrink-0" />
-          <span className="truncate font-medium">{conv.title}</span>
+        {/* Checkbox: visible on hover or when in select mode */}
+        <div
+          className={`absolute left-1.5 top-1/2 -translate-y-1/2 transition-opacity ${
+            selectMode ? "opacity-100" : "opacity-0 group-hover/conv:opacity-100"
+          }`}
+        >
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={() => toggleSelect(conv.id)}
+            className="h-3.5 w-3.5"
+          />
         </div>
-        <span className="text-[10px] text-muted-foreground ml-5.5 block mt-0.5">
-          {formatDistanceToNow(conv.updatedAt, { addSuffix: true })}
-        </span>
-      </button>
-    </div>
-  );
+
+        <button
+          onClick={() => selectMode ? toggleSelect(conv.id) : onSelect(conv.id)}
+          className="flex-1 text-left px-3 py-2.5 pl-8"
+        >
+          <div className="flex items-center gap-2">
+            {/* Message icon: hidden on hover when not in select mode */}
+            <MessageSquare className={`w-3.5 h-3.5 shrink-0 transition-opacity ${
+              selectMode ? "opacity-0 w-0 hidden" : "group-hover/conv:opacity-0 group-hover/conv:w-0 group-hover/conv:hidden"
+            }`} />
+            <span className="truncate font-medium">{conv.title}</span>
+          </div>
+          <span className="text-[10px] text-muted-foreground block mt-0.5">
+            {formatDistanceToNow(conv.updatedAt, { addSuffix: true })}
+          </span>
+        </button>
+      </div>
+    );
+  };
 
   const groupNames = Object.keys(grouped.groups).sort();
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-3 border-b space-y-2">
+      {/* Header */}
+      <div className="p-3 border-b">
         <button
           onClick={onNew}
           className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
@@ -116,64 +133,57 @@ export function ConversationList({ conversations, activeId, onSelect, onNew, onD
           <Plus className="w-4 h-4" />
           New Chat
         </button>
-
-        {!selectMode ? (
-          <button
-            onClick={() => setSelectMode(true)}
-            className="w-full text-[11px] text-muted-foreground hover:text-foreground transition-colors py-1"
-          >
-            Select conversations…
-          </button>
-        ) : (
-          <div className="flex items-center gap-1">
-            <span className="text-[11px] text-muted-foreground flex-1">
-              {selectedIds.size} selected
-            </span>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  disabled={selectedIds.size === 0}
-                  className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground disabled:opacity-40"
-                  title="Move to group"
-                >
-                  <FolderInput className="w-3.5 h-3.5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="min-w-[140px]">
-                {allGroups.map((g) => (
-                  <DropdownMenuItem key={g} onClick={() => handleMove(g)}>
-                    <Folder className="w-3.5 h-3.5 mr-2" />
-                    {g}
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuItem onClick={() => handleMove(undefined)}>
-                  <X className="w-3.5 h-3.5 mr-2" />
-                  Ungrouped
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <button
-              onClick={handleDelete}
-              disabled={selectedIds.size === 0}
-              className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-destructive disabled:opacity-40"
-              title="Delete selected"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-
-            <button
-              onClick={exitSelectMode}
-              className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground"
-              title="Cancel"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
       </div>
 
+      {/* Selection action bar */}
+      {selectMode && (
+        <div className="flex items-center gap-1 px-3 py-1.5 border-b bg-primary/5 animate-in slide-in-from-top-1 duration-150">
+          <span className="text-[11px] text-foreground font-medium flex-1">
+            {selectedIds.size} selected
+          </span>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground"
+                title="Move to group"
+              >
+                <FolderInput className="w-3.5 h-3.5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="min-w-[140px]">
+              {allGroups.map((g) => (
+                <DropdownMenuItem key={g} onClick={() => handleMove(g)}>
+                  <Folder className="w-3.5 h-3.5 mr-2" />
+                  {g}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuItem onClick={() => handleMove(undefined)}>
+                <X className="w-3.5 h-3.5 mr-2" />
+                Ungrouped
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <button
+            onClick={handleDelete}
+            className="p-1.5 rounded-md hover:bg-destructive/10 transition-colors text-destructive"
+            title="Delete selected"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            onClick={exitSelectMode}
+            className="p-1.5 rounded-md hover:bg-secondary transition-colors text-muted-foreground"
+            title="Cancel"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Conversation list */}
       <div className="flex-1 overflow-y-auto scrollbar-thin p-2 space-y-1">
         {groupNames.map((group) => {
           const isCollapsed = collapsedGroups.has(group);

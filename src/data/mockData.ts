@@ -151,6 +151,10 @@ export const mockConversations: Conversation[] = [
           timestamp: Date.now() - 590000,
           durationMs: 900,
           status: "completed",
+          systemPrompt: "You are a DevOps engineer. Be careful with destructive operations and always ask for approval.",
+          prompt: "Deploy the latest build to production and run the database migration.",
+          response: "I'll start by running the build, then execute the migration and deploy. Let me check the current status first.\n\n[tool_call: shell_exec(command='npm run build')]",
+          preset: { temperature: 0.5, maxTokens: 4096, topP: 1 },
         },
         toolCalls: [
           {

@@ -28,6 +28,10 @@ export interface LLMRequest {
   timestamp: number;
   durationMs: number;
   status: "pending" | "streaming" | "completed" | "error";
+  systemPrompt?: string;
+  prompt?: string;
+  response?: string;
+  preset?: ModelPreset;
 }
 
 export interface ChatMessage {

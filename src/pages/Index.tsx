@@ -206,6 +206,7 @@ const Index = () => {
           messages={activeConv?.messages ?? []}
           onToolApprove={(id) => handleToolDecision(id, true)}
           onToolDeny={(id) => handleToolDecision(id, false)}
+          onForkAt={handleForkAt}
         />
 
         {/* Input */}

@@ -87,6 +87,10 @@ export const mockConversations: Conversation[] = [
           timestamp: Date.now() - 3590000,
           durationMs: 1200,
           status: "completed",
+          systemPrompt: "You are a helpful coding assistant. Be concise and technical.",
+          prompt: "Can you help me refactor the authentication middleware? It's become a mess with too many edge cases.",
+          response: "I'll analyze the current middleware structure. Let me read the auth files first.\n\n[tool_call: file_read(path='src/middleware/auth.ts')]",
+          preset: { temperature: 0.7, maxTokens: 4096, topP: 1 },
         },
         toolCalls: [
           {

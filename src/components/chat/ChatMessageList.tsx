@@ -1,19 +1,34 @@
 import { useEffect, useRef } from "react";
-import { ChatMessage as ChatMessageType } from "@/types/agent";
+import { ChatMessage as ChatMessageType, ModelPreset } from "@/types/agent";
 import { ChatMessage } from "./ChatMessage";
+import { ThinkingItem } from "./ThinkingItem";
 import { Bot } from "lucide-react";
 
 interface ChatMessageListProps {
   messages: ChatMessageType[];
   onToolApprove?: (toolCallId: string) => void;
   onToolDeny?: (toolCallId: string) => void;
+  onForkAt?: (
+    messageId: string,
+    edited: {
+      systemPrompt: string;
+      prompt: string;
+      response: string;
+      model: string;
+      preset: ModelPreset;
+    }
+  ) => void;
 }
 
-export function ChatMessageList({ messages, onToolApprove, onToolDeny }: ChatMessageListProps) {
+export function ChatMessageList({
+  messages,
+  onToolApprove,
+  onToolDeny,
+  onForkAt,
+}: ChatMessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastUserMsgRef = useRef<HTMLDivElement>(null);
 
-  // Find the index of the last user message
   const lastUserMsgIndex = (() => {
     for (let i = messages.length - 1; i >= 0; i--) {
       if (messages[i].role === "user") return i;
@@ -21,7 +36,6 @@ export function ChatMessageList({ messages, onToolApprove, onToolDeny }: ChatMes
     return -1;
   })();
 
-  // Scroll so the last user message is at the top of the viewport
   useEffect(() => {
     if (lastUserMsgRef.current && scrollRef.current) {
       const container = scrollRef.current;
@@ -46,6 +60,16 @@ export function ChatMessageList({ messages, onToolApprove, onToolDeny }: ChatMes
           key={msg.id}
           ref={i === lastUserMsgIndex ? lastUserMsgRef : undefined}
         >
+          {msg.role === "assistant" && msg.llmRequest && (
+            <ThinkingItem
+              request={msg.llmRequest}
+              onFork={
+                onForkAt
+                  ? (edited) => onForkAt(msg.id, edited)
+                  : undefined
+              }
+            />
+          )}
           <ChatMessage
             message={msg}
             onToolApprove={onToolApprove}
@@ -53,7 +77,6 @@ export function ChatMessageList({ messages, onToolApprove, onToolDeny }: ChatMes
           />
         </div>
       ))}
-      {/* Spacer so the last user message can scroll to the top */}
       <div className="min-h-[60vh]" />
     </div>
   );

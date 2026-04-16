@@ -87,6 +87,10 @@ export const mockConversations: Conversation[] = [
           timestamp: Date.now() - 3590000,
           durationMs: 1200,
           status: "completed",
+          systemPrompt: "You are a helpful coding assistant. Be concise and technical.",
+          prompt: "Can you help me refactor the authentication middleware? It's become a mess with too many edge cases.",
+          response: "I'll analyze the current middleware structure. Let me read the auth files first.\n\n[tool_call: file_read(path='src/middleware/auth.ts')]",
+          preset: { temperature: 0.7, maxTokens: 4096, topP: 1 },
         },
         toolCalls: [
           {
@@ -113,6 +117,10 @@ export const mockConversations: Conversation[] = [
           timestamp: Date.now() - 3580000,
           durationMs: 2100,
           status: "completed",
+          systemPrompt: "You are a helpful coding assistant. Be concise and technical.",
+          prompt: "[previous turn + tool result]\n\n// Auth middleware with 340 lines of code containing token validation, rate limiting and error handling all interleaved...",
+          response: "I've analyzed the middleware. Here's what I found:\n\n1. Token validation is duplicated across 3 functions\n2. Error handling is inconsistent — some paths throw, others return null\n3. Rate limiting logic is mixed into auth checks\n\nI recommend extracting these into separate concerns. Want me to proceed with the refactor?",
+          preset: { temperature: 0.7, maxTokens: 4096, topP: 1 },
         },
       },
     ],

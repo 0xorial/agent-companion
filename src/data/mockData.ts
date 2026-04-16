@@ -181,6 +181,10 @@ export const mockConversations: Conversation[] = [
           timestamp: Date.now() - 570000,
           durationMs: 1400,
           status: "completed",
+          systemPrompt: "You are a DevOps engineer. Be careful with destructive operations and always ask for approval.",
+          prompt: "[previous turn + build output]\nBuild completed successfully in 12.4s\n✓ 847 modules transformed",
+          response: "Build succeeded. Now I need to run the database migration. This will alter the `users` table and add a new `sessions` table. I need your approval since this modifies the database.\n\n[tool_call: db_mutate(query='ALTER TABLE users ...')]",
+          preset: { temperature: 0.5, maxTokens: 4096, topP: 1 },
         },
         toolCalls: [
           {

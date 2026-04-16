@@ -16,7 +16,7 @@ interface ThinkingItemProps {
 }
 
 export function ThinkingItem({ request, onFork }: ThinkingItemProps) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
 
   const [systemPrompt, setSystemPrompt] = useState(request.systemPrompt ?? "");

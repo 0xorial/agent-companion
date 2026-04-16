@@ -94,6 +94,49 @@ const Index = () => {
     );
   };
 
+  const handleForkAt = (
+    messageId: string,
+    edited: {
+      systemPrompt: string;
+      prompt: string;
+      response: string;
+      model: string;
+      preset: ModelPreset;
+    }
+  ) => {
+    if (!activeConv) return;
+    const idx = activeConv.messages.findIndex((m) => m.id === messageId);
+    if (idx === -1) return;
+
+    const truncated = activeConv.messages.slice(0, idx + 1).map((m) =>
+      m.id === messageId
+        ? {
+            ...m,
+            content: edited.response,
+            llmRequest: m.llmRequest && {
+              ...m.llmRequest,
+              systemPrompt: edited.systemPrompt,
+              prompt: edited.prompt,
+              response: edited.response,
+              model: edited.model,
+              preset: edited.preset,
+            },
+          }
+        : m
+    );
+
+    const forked: Conversation = {
+      id: crypto.randomUUID(),
+      title: `${activeConv.title} (fork)`,
+      group: activeConv.group,
+      messages: truncated,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    setConversations((prev) => [forked, ...prev]);
+    setActiveConvId(forked.id);
+  };
+
   const handleAgentChange = (agentId: string | null) => {
     setSelectedAgentId(agentId);
     setModelOverride(null);

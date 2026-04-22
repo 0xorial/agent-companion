@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import { ChatMessage, LLMRequest, ModelPreset } from "@/types/agent";
+import { ChatMessage, LLMRequest, ModelPreset, StepBranches } from "@/types/agent";
 import {
   ChevronRight,
   FileText,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { StepBranchIndicator } from "./StepBranchIndicator";
 
 interface AgentStepsProps {
   message: ChatMessage;
@@ -66,7 +67,7 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
 
 /* ---------------- Step 1: Context ---------------- */
 
-function ContextStep({ request }: { request: LLMRequest }) {
+function ContextStep({ request, branches }: { request: LLMRequest; branches?: StepBranches }) {
   const [open, setOpen] = useState(false);
   return (
     <StepShell
@@ -75,6 +76,7 @@ function ContextStep({ request }: { request: LLMRequest }) {
       icon={<FileText className="w-3 h-3" />}
       label="Prepared context"
       meta={`${request.promptTokens} input tok`}
+      trailing={<StepBranchIndicator branches={branches} />}
     >
       <ReadOnlySection label="System prompt" value={request.systemPrompt} />
       <ReadOnlySection label="Prompt" value={request.prompt} />
@@ -89,11 +91,13 @@ function ReasoningStep({
   message,
   onFork,
   trailing,
+  branches,
 }: {
   request: LLMRequest;
   message: ChatMessage;
   onFork?: AgentStepsProps["onFork"];
   trailing?: ReactNode;
+  branches?: StepBranches;
 }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);

@@ -207,6 +207,15 @@ const conv2Linear: ChatMessage[] = [
         completedAt: Date.now() - 576000,
       },
     ],
+    stepBranches: {
+      action: {
+        selectedIndex: 0,
+        variants: [
+          { id: "m11-act-a", label: "Called shell_exec(npm run build)", createdAt: Date.now() - 589000 },
+          { id: "m11-act-b", label: "Called shell_exec(npm ci && npm run build)", createdAt: Date.now() - 500000 },
+        ],
+      },
+    },
   },
   {
     id: "m12",

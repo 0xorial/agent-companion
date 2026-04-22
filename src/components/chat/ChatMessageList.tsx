@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ChatMessage as ChatMessageType, Conversation, ModelPreset } from "@/types/agent";
 import { ChatMessage } from "./ChatMessage";
-import { ThinkingItem } from "./ThinkingItem";
+import { AgentSteps } from "./AgentSteps";
 import { BranchSwitcher } from "./BranchSwitcher";
 import { getChildren, getRoots, deepestDescendant } from "@/lib/conversation";
 import { Bot } from "lucide-react";
@@ -76,8 +76,8 @@ export function ChatMessageList({
             ref={i === lastUserMsgIndex ? lastUserMsgRef : undefined}
           >
             {msg.role === "assistant" && msg.llmRequest && (
-              <ThinkingItem
-                request={msg.llmRequest}
+              <AgentSteps
+                message={msg}
                 onFork={
                   onForkAt
                     ? (edited) => onForkAt(msg.id, edited)

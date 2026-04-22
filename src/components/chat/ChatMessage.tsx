@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import { ChatMessage as ChatMessageType } from "@/types/agent";
 import { ToolCallBlock } from "./ToolCallBlock";
 import { LLMRequestBadge } from "./LLMRequestBadge";
@@ -7,9 +8,10 @@ interface ChatMessageProps {
   message: ChatMessageType;
   onToolApprove?: (toolCallId: string) => void;
   onToolDeny?: (toolCallId: string) => void;
+  branchSwitcher?: ReactNode;
 }
 
-export function ChatMessage({ message, onToolApprove, onToolDeny }: ChatMessageProps) {
+export function ChatMessage({ message, onToolApprove, onToolDeny, branchSwitcher }: ChatMessageProps) {
   const isUser = message.role === "user";
 
   return (
@@ -35,6 +37,7 @@ export function ChatMessage({ message, onToolApprove, onToolDeny }: ChatMessageP
             {message.llmRequest && (
               <LLMRequestBadge request={message.llmRequest} />
             )}
+            {branchSwitcher}
           </div>
 
           <div className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">

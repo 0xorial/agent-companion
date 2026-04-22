@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { LLMRequest, ModelPreset } from "@/types/agent";
 import { Brain, ChevronRight, Pencil, GitBranch, X, Check } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,9 +13,10 @@ interface ThinkingItemProps {
     model: string;
     preset: ModelPreset;
   }) => void;
+  trailing?: ReactNode;
 }
 
-export function ThinkingItem({ request, onFork }: ThinkingItemProps) {
+export function ThinkingItem({ request, onFork, trailing }: ThinkingItemProps) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
 
@@ -67,6 +68,7 @@ export function ThinkingItem({ request, onFork }: ThinkingItemProps) {
               · {request.model} · {request.promptTokens + request.completionTokens} tok · {request.durationMs}ms
             </span>
           </button>
+          {trailing}
           {open && !editing && onFork && (
             <button
               onClick={() => setEditing(true)}

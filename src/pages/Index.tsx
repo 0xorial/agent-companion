@@ -1,12 +1,29 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ConversationList } from "@/components/sidebar/ConversationList";
 import { ChatMessageList } from "@/components/chat/ChatMessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ActivityPanel } from "@/components/panels/ActivityPanel";
+import { BranchTree } from "@/components/panels/BranchTree";
 import { ToolRegistry } from "@/components/tools/ToolRegistry";
 import { mockConversations, mockTools, mockAgents, mockModels } from "@/data/mockData";
-import { Conversation, ToolDefinition, ToolPermission, ChatMessage as ChatMessageType, ModelPreset } from "@/types/agent";
-import { Bot, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Wrench, Activity } from "lucide-react";
+import {
+  Conversation,
+  ToolDefinition,
+  ToolPermission,
+  ChatMessage as ChatMessageType,
+  ModelPreset,
+} from "@/types/agent";
+import { getActivePath, appendMessage } from "@/lib/conversation";
+import {
+  Bot,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
+  Wrench,
+  Activity,
+  GitBranch,
+} from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
@@ -15,19 +32,32 @@ const Index = () => {
   const [tools, setTools] = useState<ToolDefinition[]>(mockTools);
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
-  const [rightTab, setRightTab] = useState<"activity" | "tools">("activity");
+  const [rightTab, setRightTab] = useState<"activity" | "branches" | "tools">("branches");
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(mockAgents[0]?.id ?? null);
   const [selectedToolIds, setSelectedToolIds] = useState<string[]>(mockTools.map((t) => t.id));
   const [modelOverride, setModelOverride] = useState<string | null>(null);
   const [presetOverride, setPresetOverride] = useState<Partial<ModelPreset>>({});
 
   const activeConv = conversations.find((c) => c.id === activeConvId) ?? null;
+  const activePath = useMemo(
+    () => (activeConv ? getActivePath(activeConv) : []),
+    [activeConv]
+  );
+  const activePathIds = useMemo(
+    () => new Set(activePath.map((m) => m.id)),
+    [activePath]
+  );
+
+  const updateConv = (id: string, fn: (c: Conversation) => Conversation) => {
+    setConversations((prev) => prev.map((c) => (c.id === id ? fn(c) : c)));
+  };
 
   const handleNewChat = () => {
     const newConv: Conversation = {
       id: crypto.randomUUID(),
       title: "New conversation",
-      messages: [],
+      nodes: {},
+      headId: null,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
@@ -58,42 +88,46 @@ const Index = () => {
       content,
       timestamp: Date.now(),
     };
-    setConversations((prev) =>
-      prev.map((c) =>
-        c.id === activeConvId
-          ? { ...c, messages: [...c.messages, msg], updatedAt: Date.now() }
-          : c
-      )
-    );
+    updateConv(activeConvId, (c) => appendMessage(c, msg));
   };
 
   const handlePermissionChange = (toolId: string, permission: ToolPermission) => {
-    setTools((prev) =>
-      prev.map((t) => (t.id === toolId ? { ...t, permission } : t))
-    );
+    setTools((prev) => prev.map((t) => (t.id === toolId ? { ...t, permission } : t)));
   };
 
   const handleToolDecision = (toolCallId: string, approved: boolean) => {
     setConversations((prev) =>
-      prev.map((c) => ({
-        ...c,
-        messages: c.messages.map((msg) => ({
-          ...msg,
-          toolCalls: msg.toolCalls?.map((tc) =>
-            tc.id === toolCallId
-              ? {
-                  ...tc,
-                  status: approved ? ("completed" as const) : ("failed" as const),
-                  result: approved ? "Approved by user — executed successfully." : "Denied by user.",
-                  completedAt: Date.now(),
-                }
-              : tc
-          ),
-        })),
-      }))
+      prev.map((c) => {
+        const newNodes: Record<string, ChatMessageType> = {};
+        let changed = false;
+        for (const [id, node] of Object.entries(c.nodes)) {
+          if (!node.toolCalls?.some((tc) => tc.id === toolCallId)) {
+            newNodes[id] = node;
+            continue;
+          }
+          changed = true;
+          newNodes[id] = {
+            ...node,
+            toolCalls: node.toolCalls.map((tc) =>
+              tc.id === toolCallId
+                ? {
+                    ...tc,
+                    status: approved ? ("completed" as const) : ("failed" as const),
+                    result: approved
+                      ? "Approved by user — executed successfully."
+                      : "Denied by user.",
+                    completedAt: Date.now(),
+                  }
+                : tc
+            ),
+          };
+        }
+        return changed ? { ...c, nodes: newNodes } : c;
+      })
     );
   };
 
+  /** Edit a Thought → create a sibling branch under the same parent and switch head to it. */
   const handleForkAt = (
     messageId: string,
     edited: {
@@ -105,36 +139,40 @@ const Index = () => {
     }
   ) => {
     if (!activeConv) return;
-    const idx = activeConv.messages.findIndex((m) => m.id === messageId);
-    if (idx === -1) return;
+    const original = activeConv.nodes[messageId];
+    if (!original) return;
 
-    const truncated = activeConv.messages.slice(0, idx + 1).map((m) =>
-      m.id === messageId
-        ? {
-            ...m,
-            content: edited.response,
-            llmRequest: m.llmRequest && {
-              ...m.llmRequest,
-              systemPrompt: edited.systemPrompt,
-              prompt: edited.prompt,
-              response: edited.response,
-              model: edited.model,
-              preset: edited.preset,
-            },
-          }
-        : m
-    );
-
-    const forked: Conversation = {
-      id: crypto.randomUUID(),
-      title: `${activeConv.title} (fork)`,
-      group: activeConv.group,
-      messages: truncated,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+    const newId = crypto.randomUUID();
+    const branchedNode: ChatMessageType = {
+      ...original,
+      id: newId,
+      parentId: original.parentId ?? null,
+      content: edited.response,
+      timestamp: Date.now(),
+      llmRequest: original.llmRequest && {
+        ...original.llmRequest,
+        id: crypto.randomUUID(),
+        systemPrompt: edited.systemPrompt,
+        prompt: edited.prompt,
+        response: edited.response,
+        model: edited.model,
+        preset: edited.preset,
+        timestamp: Date.now(),
+      },
+      toolCalls: undefined,
     };
-    setConversations((prev) => [forked, ...prev]);
-    setActiveConvId(forked.id);
+
+    updateConv(activeConv.id, (c) => ({
+      ...c,
+      nodes: { ...c.nodes, [newId]: branchedNode },
+      headId: newId,
+      updatedAt: Date.now(),
+    }));
+  };
+
+  const handleSwitchToLeaf = (leafId: string) => {
+    if (!activeConv) return;
+    updateConv(activeConv.id, (c) => ({ ...c, headId: leafId }));
   };
 
   const handleAgentChange = (agentId: string | null) => {
@@ -203,10 +241,12 @@ const Index = () => {
 
         {/* Messages */}
         <ChatMessageList
-          messages={activeConv?.messages ?? []}
+          conversation={activeConv}
+          messages={activePath}
           onToolApprove={(id) => handleToolDecision(id, true)}
           onToolDeny={(id) => handleToolDecision(id, false)}
           onForkAt={handleForkAt}
+          onSwitchToLeaf={handleSwitchToLeaf}
         />
 
         {/* Input */}
@@ -234,33 +274,36 @@ const Index = () => {
       >
         {/* Tabs */}
         <div className="flex border-b shrink-0">
-          <button
+          <TabButton
+            active={rightTab === "branches"}
+            onClick={() => setRightTab("branches")}
+            icon={<GitBranch className="w-3.5 h-3.5" />}
+            label="Branches"
+          />
+          <TabButton
+            active={rightTab === "activity"}
             onClick={() => setRightTab("activity")}
-            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-medium transition-colors ${
-              rightTab === "activity"
-                ? "text-primary border-b-2 border-primary"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Activity className="w-3.5 h-3.5" />
-            Activity
-          </button>
-          <button
+            icon={<Activity className="w-3.5 h-3.5" />}
+            label="Activity"
+          />
+          <TabButton
+            active={rightTab === "tools"}
             onClick={() => setRightTab("tools")}
-            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-medium transition-colors ${
-              rightTab === "tools"
-                ? "text-primary border-b-2 border-primary"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Wrench className="w-3.5 h-3.5" />
-            Tools
-          </button>
+            icon={<Wrench className="w-3.5 h-3.5" />}
+            label="Tools"
+          />
         </div>
 
         <div className="flex-1 overflow-y-auto scrollbar-thin">
-          {rightTab === "activity" ? (
-            <ActivityPanel messages={activeConv?.messages ?? []} />
+          {rightTab === "branches" ? (
+            <BranchTree
+              conversation={activeConv}
+              activePathIds={activePathIds}
+              headId={activeConv?.headId ?? null}
+              onSelectLeaf={handleSwitchToLeaf}
+            />
+          ) : rightTab === "activity" ? (
+            <ActivityPanel messages={activePath} />
           ) : (
             <ToolRegistry tools={tools} onPermissionChange={handlePermissionChange} />
           )}
@@ -269,5 +312,31 @@ const Index = () => {
     </div>
   );
 };
+
+function TabButton({
+  active,
+  onClick,
+  icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-medium transition-colors ${
+        active
+          ? "text-primary border-b-2 border-primary"
+          : "text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
 
 export default Index;

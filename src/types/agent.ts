@@ -41,6 +41,7 @@ export interface ChatMessage {
   timestamp: number;
   toolCalls?: ToolCall[];
   llmRequest?: LLMRequest;
+  parentId?: string | null;
 }
 
 export interface ModelPreset {
@@ -63,7 +64,10 @@ export interface AgentDefinition {
 export interface Conversation {
   id: string;
   title: string;
-  messages: ChatMessage[];
+  /** Flat map of all messages across all branches, keyed by id. */
+  nodes: Record<string, ChatMessage>;
+  /** Currently active leaf — the displayed path is computed by walking parentId up from here. */
+  headId: string | null;
   createdAt: number;
   updatedAt: number;
   group?: string;

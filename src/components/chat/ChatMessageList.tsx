@@ -1,10 +1,13 @@
 import { useEffect, useRef } from "react";
-import { ChatMessage as ChatMessageType, ModelPreset } from "@/types/agent";
+import { ChatMessage as ChatMessageType, Conversation, ModelPreset } from "@/types/agent";
 import { ChatMessage } from "./ChatMessage";
 import { ThinkingItem } from "./ThinkingItem";
+import { BranchSwitcher } from "./BranchSwitcher";
+import { getChildren, getRoots, deepestDescendant } from "@/lib/conversation";
 import { Bot } from "lucide-react";
 
 interface ChatMessageListProps {
+  conversation: Conversation | null;
   messages: ChatMessageType[];
   onToolApprove?: (toolCallId: string) => void;
   onToolDeny?: (toolCallId: string) => void;
@@ -18,13 +21,16 @@ interface ChatMessageListProps {
       preset: ModelPreset;
     }
   ) => void;
+  onSwitchToLeaf?: (leafId: string) => void;
 }
 
 export function ChatMessageList({
+  conversation,
   messages,
   onToolApprove,
   onToolDeny,
   onForkAt,
+  onSwitchToLeaf,
 }: ChatMessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastUserMsgRef = useRef<HTMLDivElement>(null);
@@ -55,28 +61,62 @@ export function ChatMessageList({
 
   return (
     <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin px-4">
-      {messages.map((msg, i) => (
-        <div
-          key={msg.id}
-          ref={i === lastUserMsgIndex ? lastUserMsgRef : undefined}
-        >
-          {msg.role === "assistant" && msg.llmRequest && (
-            <ThinkingItem
-              request={msg.llmRequest}
-              onFork={
-                onForkAt
-                  ? (edited) => onForkAt(msg.id, edited)
-                  : undefined
+      {messages.map((msg, i) => {
+        // Determine sibling set under the same parent
+        const siblings = conversation
+          ? msg.parentId
+            ? getChildren(conversation, msg.parentId)
+            : getRoots(conversation)
+          : [msg];
+        const siblingIndex = siblings.findIndex((s) => s.id === msg.id);
+
+        return (
+          <div
+            key={msg.id}
+            ref={i === lastUserMsgIndex ? lastUserMsgRef : undefined}
+          >
+            {msg.role === "assistant" && msg.llmRequest && (
+              <ThinkingItem
+                request={msg.llmRequest}
+                onFork={
+                  onForkAt
+                    ? (edited) => onForkAt(msg.id, edited)
+                    : undefined
+                }
+                trailing={
+                  conversation && siblings.length > 1 && onSwitchToLeaf ? (
+                    <BranchSwitcher
+                      index={siblingIndex}
+                      total={siblings.length}
+                      onChange={(newIdx) => {
+                        const target = siblings[newIdx];
+                        onSwitchToLeaf(deepestDescendant(conversation, target.id));
+                      }}
+                    />
+                  ) : null
+                }
+              />
+            )}
+            <ChatMessage
+              message={msg}
+              onToolApprove={onToolApprove}
+              onToolDeny={onToolDeny}
+              branchSwitcher={
+                conversation && siblings.length > 1 && onSwitchToLeaf && !(msg.role === "assistant" && msg.llmRequest) ? (
+                  <BranchSwitcher
+                    index={siblingIndex}
+                    total={siblings.length}
+                    onChange={(newIdx) => {
+                      const target = siblings[newIdx];
+                      onSwitchToLeaf(deepestDescendant(conversation, target.id));
+                    }}
+                  />
+                ) : null
               }
             />
-          )}
-          <ChatMessage
-            message={msg}
-            onToolApprove={onToolApprove}
-            onToolDeny={onToolDeny}
-          />
-        </div>
-      ))}
+          </div>
+        );
+      })}
       <div className="min-h-[60vh]" />
     </div>
   );

@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import { ChatMessage, LLMRequest, ModelPreset } from "@/types/agent";
+import { ChatMessage, LLMRequest, ModelPreset, StepBranches } from "@/types/agent";
 import {
   ChevronRight,
   FileText,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { StepBranchIndicator } from "./StepBranchIndicator";
 
 interface AgentStepsProps {
   message: ChatMessage;
@@ -41,14 +42,23 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
     ? `Called ${message.toolCalls!.length === 1 ? message.toolCalls![0].toolName : `${message.toolCalls!.length} tools`}`
     : "Replied to user";
 
+  const sb = message.stepBranches;
+
   return (
     <div className="max-w-3xl mx-auto px-3">
       <div className="border-l-2 border-border/60 pl-3 my-1.5 space-y-0.5">
-        <ContextStep request={req} />
-        <ReasoningStep request={req} message={message} onFork={onFork} trailing={trailing} />
+        <ContextStep request={req} branches={sb?.context} />
+        <ReasoningStep
+          request={req}
+          message={message}
+          onFork={onFork}
+          trailing={trailing}
+          branches={sb?.reasoning}
+        />
         <ActionStep
           icon={hasTools ? <Wrench className="w-3 h-3" /> : <MessageSquare className="w-3 h-3" />}
           label={actionLabel}
+          branches={sb?.action}
         />
       </div>
     </div>
@@ -57,7 +67,7 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
 
 /* ---------------- Step 1: Context ---------------- */
 
-function ContextStep({ request }: { request: LLMRequest }) {
+function ContextStep({ request, branches }: { request: LLMRequest; branches?: StepBranches }) {
   const [open, setOpen] = useState(false);
   return (
     <StepShell
@@ -66,6 +76,7 @@ function ContextStep({ request }: { request: LLMRequest }) {
       icon={<FileText className="w-3 h-3" />}
       label="Prepared context"
       meta={`${request.promptTokens} input tok`}
+      trailing={<StepBranchIndicator branches={branches} />}
     >
       <ReadOnlySection label="System prompt" value={request.systemPrompt} />
       <ReadOnlySection label="Prompt" value={request.prompt} />
@@ -80,11 +91,13 @@ function ReasoningStep({
   message,
   onFork,
   trailing,
+  branches,
 }: {
   request: LLMRequest;
   message: ChatMessage;
   onFork?: AgentStepsProps["onFork"];
   trailing?: ReactNode;
+  branches?: StepBranches;
 }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -129,6 +142,7 @@ function ReasoningStep({
       meta={`${request.model} · ${request.completionTokens} out tok · ${request.durationMs}ms`}
       trailing={
         <>
+          <StepBranchIndicator branches={branches} />
           {trailing}
           {open && !editing && onFork && (
             <button
@@ -243,12 +257,21 @@ function ReasoningStep({
 
 /* ---------------- Step 3: Action ---------------- */
 
-function ActionStep({ icon, label }: { icon: ReactNode; label: string }) {
+function ActionStep({
+  icon,
+  label,
+  branches,
+}: {
+  icon: ReactNode;
+  label: string;
+  branches?: StepBranches;
+}) {
   return (
     <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground py-0.5">
       <span className="w-3 h-3 inline-block" />
       {icon}
       <span className="font-medium">{label}</span>
+      <StepBranchIndicator branches={branches} />
     </div>
   );
 }

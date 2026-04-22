@@ -117,6 +117,30 @@ const conv1Linear: ChatMessage[] = [
       response: "I've analyzed the middleware. Here's what I found:\n\n1. Token validation is duplicated across 3 functions\n2. Error handling is inconsistent — some paths throw, others return null\n3. Rate limiting logic is mixed into auth checks\n\nI recommend extracting these into separate concerns. Want me to proceed with the refactor?",
       preset: { temperature: 0.7, maxTokens: 4096, topP: 1 },
     },
+    stepBranches: {
+      context: {
+        selectedIndex: 0,
+        variants: [
+          { id: "ctx-a", label: "Default system prompt", createdAt: Date.now() - 3580000 },
+          { id: "ctx-b", label: "Senior-engineer system prompt", createdAt: Date.now() - 3500000 },
+        ],
+      },
+      reasoning: {
+        selectedIndex: 0,
+        variants: [
+          { id: "rsn-a", label: "claude-sonnet-4 · temp 0.7", createdAt: Date.now() - 3580000 },
+          { id: "rsn-b", label: "gpt-4o · temp 0.4", createdAt: Date.now() - 3500000 },
+          { id: "rsn-c", label: "gemini-2.5-pro · temp 0.9", createdAt: Date.now() - 3400000 },
+        ],
+      },
+      action: {
+        selectedIndex: 0,
+        variants: [
+          { id: "act-a", label: "Reply to user", createdAt: Date.now() - 3580000 },
+          { id: "act-b", label: "Call file_write instead", createdAt: Date.now() - 3500000 },
+        ],
+      },
+    },
   },
 ];
 
@@ -183,6 +207,15 @@ const conv2Linear: ChatMessage[] = [
         completedAt: Date.now() - 576000,
       },
     ],
+    stepBranches: {
+      action: {
+        selectedIndex: 0,
+        variants: [
+          { id: "m11-act-a", label: "Called shell_exec(npm run build)", createdAt: Date.now() - 589000 },
+          { id: "m11-act-b", label: "Called shell_exec(npm ci && npm run build)", createdAt: Date.now() - 500000 },
+        ],
+      },
+    },
   },
   {
     id: "m12",

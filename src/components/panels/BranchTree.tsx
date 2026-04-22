@@ -1,6 +1,6 @@
-import { Conversation } from "@/types/agent";
+import { Conversation, AgentStepKind } from "@/types/agent";
 import { getRoots, getChildren, deepestDescendant } from "@/lib/conversation";
-import { GitBranch, User, Bot, Dot } from "lucide-react";
+import { GitBranch, User, Bot, Dot, FileText, Sparkles, Zap } from "lucide-react";
 
 interface BranchTreeProps {
   conversation: Conversation | null;
@@ -100,6 +100,47 @@ function Node({ conv, id, depth, activePathIds, headId, onSelectLeaf }: NodeProp
           </span>
         )}
       </button>
+      {node.stepBranches && (
+        <div style={{ paddingLeft: `${depth * 12 + 22}px` }} className="space-y-0.5 py-0.5">
+          {(["context", "reasoning", "action"] as AgentStepKind[]).map((kind) => {
+            const sb = node.stepBranches?.[kind];
+            if (!sb || sb.variants.length <= 1) return null;
+            const Icon =
+              kind === "context" ? FileText : kind === "reasoning" ? Sparkles : Zap;
+            const stepLabel =
+              kind === "context"
+                ? "Context"
+                : kind === "reasoning"
+                  ? "Reasoning"
+                  : "Action";
+            return (
+              <div key={kind} className="space-y-0.5">
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground/80 px-1.5 py-0.5">
+                  <Icon className="w-2.5 h-2.5" />
+                  <span className="uppercase tracking-wider font-semibold">{stepLabel}</span>
+                  <span className="opacity-60 font-mono">
+                    {sb.selectedIndex + 1}/{sb.variants.length}
+                  </span>
+                </div>
+                {sb.variants.map((v, idx) => (
+                  <div
+                    key={v.id}
+                    className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded ${
+                      idx === sb.selectedIndex
+                        ? "text-primary bg-primary/10"
+                        : "text-muted-foreground"
+                    }`}
+                    style={{ paddingLeft: "16px" }}
+                  >
+                    <GitBranch className="w-2.5 h-2.5 shrink-0" />
+                    <span className="truncate">{v.label}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      )}
       {children.map((c) => (
         <Node
           key={c.id}

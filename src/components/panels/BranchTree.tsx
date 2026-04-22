@@ -1,6 +1,6 @@
-import { Conversation } from "@/types/agent";
+import { Conversation, AgentStepKind } from "@/types/agent";
 import { getRoots, getChildren, deepestDescendant } from "@/lib/conversation";
-import { GitBranch, User, Bot, Dot } from "lucide-react";
+import { GitBranch, User, Bot, Dot, FileText, Sparkles, Zap } from "lucide-react";
 
 interface BranchTreeProps {
   conversation: Conversation | null;

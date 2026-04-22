@@ -41,14 +41,23 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
     ? `Called ${message.toolCalls!.length === 1 ? message.toolCalls![0].toolName : `${message.toolCalls!.length} tools`}`
     : "Replied to user";
 
+  const sb = message.stepBranches;
+
   return (
     <div className="max-w-3xl mx-auto px-3">
       <div className="border-l-2 border-border/60 pl-3 my-1.5 space-y-0.5">
-        <ContextStep request={req} />
-        <ReasoningStep request={req} message={message} onFork={onFork} trailing={trailing} />
+        <ContextStep request={req} branches={sb?.context} />
+        <ReasoningStep
+          request={req}
+          message={message}
+          onFork={onFork}
+          trailing={trailing}
+          branches={sb?.reasoning}
+        />
         <ActionStep
           icon={hasTools ? <Wrench className="w-3 h-3" /> : <MessageSquare className="w-3 h-3" />}
           label={actionLabel}
+          branches={sb?.action}
         />
       </div>
     </div>

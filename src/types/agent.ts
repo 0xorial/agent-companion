@@ -34,6 +34,24 @@ export interface LLMRequest {
   preset?: ModelPreset;
 }
 
+export type AgentStepKind = "context" | "reasoning" | "action";
+
+/** A per-step variant for an assistant turn. Lets users branch on each
+ *  of the three sub-steps (prepared context, queried model, action). */
+export interface StepVariant {
+  id: string;
+  /** Short label shown in the branches panel, e.g. model name or tool name. */
+  label: string;
+  createdAt: number;
+}
+
+export interface StepBranches {
+  /** All variants for this step, including the currently-selected one. */
+  variants: StepVariant[];
+  /** Index into `variants` that is currently active. */
+  selectedIndex: number;
+}
+
 export interface ChatMessage {
   id: string;
   role: MessageRole;
@@ -42,6 +60,8 @@ export interface ChatMessage {
   toolCalls?: ToolCall[];
   llmRequest?: LLMRequest;
   parentId?: string | null;
+  /** Optional per-step branching metadata for assistant turns. */
+  stepBranches?: Partial<Record<AgentStepKind, StepBranches>>;
 }
 
 export interface ModelPreset {

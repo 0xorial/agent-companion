@@ -68,6 +68,7 @@ export function ThinkingItem({ request, onFork, trailing }: ThinkingItemProps) {
               · {request.model} · {request.promptTokens + request.completionTokens} tok · {request.durationMs}ms
             </span>
           </button>
+          {trailing}
           {open && !editing && onFork && (
             <button
               onClick={() => setEditing(true)}

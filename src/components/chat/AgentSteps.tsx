@@ -138,12 +138,14 @@ function StepChip({
   active,
   onClick,
   branches,
+  onBranchChange,
 }: {
   icon: ReactNode;
   label: string;
   active: boolean;
   onClick: () => void;
   branches?: StepBranches;
+  onBranchChange?: (newIdx: number) => void;
 }) {
   return (
     <button

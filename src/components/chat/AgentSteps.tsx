@@ -37,6 +37,8 @@ interface AgentStepsProps {
 export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
   const req = message.llmRequest;
   const [expanded, setExpanded] = useState<AgentStepKind | null>(null);
+  // Local per-step variant selection overrides (UI-only for now).
+  const [selOverrides, setSelOverrides] = useState<Partial<Record<AgentStepKind, number>>>({});
 
   if (!req) return null;
 
@@ -54,6 +56,16 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
   const toggle = (kind: AgentStepKind) =>
     setExpanded((cur) => (cur === kind ? null : kind));
 
+  const branchesFor = (kind: AgentStepKind): StepBranches | undefined => {
+    const base = sb?.[kind];
+    if (!base) return undefined;
+    const override = selOverrides[kind];
+    return override !== undefined ? { ...base, selectedIndex: override } : base;
+  };
+
+  const onChangeFor = (kind: AgentStepKind) => (newIdx: number) =>
+    setSelOverrides((s) => ({ ...s, [kind]: newIdx }));
+
   return (
     <div className="max-w-3xl mx-auto px-3">
       <div className="border-l-2 border-border/60 pl-3 my-1.5">
@@ -63,7 +75,8 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
             label="Context"
             active={expanded === "context"}
             onClick={() => toggle("context")}
-            branches={sb?.context}
+            branches={branchesFor("context")}
+            onBranchChange={onChangeFor("context")}
           />
           <Connector />
           <StepChip
@@ -71,7 +84,8 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
             label="Reason"
             active={expanded === "reasoning"}
             onClick={() => toggle("reasoning")}
-            branches={sb?.reasoning}
+            branches={branchesFor("reasoning")}
+            onBranchChange={onChangeFor("reasoning")}
           />
           <Connector />
           <StepChip
@@ -79,7 +93,8 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
             label={hasTools ? "Tool" : "Reply"}
             active={expanded === "action"}
             onClick={() => toggle("action")}
-            branches={sb?.action}
+            branches={branchesFor("action")}
+            onBranchChange={onChangeFor("action")}
           />
           {trailing && <span className="ml-auto flex items-center">{trailing}</span>}
         </div>

@@ -76,6 +76,7 @@ export function AgentSteps({ message, onFork }: AgentStepsProps) {
             active={expanded === "context"}
             onClick={() => toggle("context")}
             branches={branchesFor("context")}
+            align="start"
           />
           <Connector />
           <StepChip
@@ -84,6 +85,7 @@ export function AgentSteps({ message, onFork }: AgentStepsProps) {
             active={expanded === "reasoning"}
             onClick={() => toggle("reasoning")}
             branches={branchesFor("reasoning")}
+            align="center"
           />
           <Connector />
           <StepChip
@@ -92,6 +94,7 @@ export function AgentSteps({ message, onFork }: AgentStepsProps) {
             active={expanded === "action"}
             onClick={() => toggle("action")}
             branches={branchesFor("action")}
+            align="end"
           />
         </div>
 
@@ -146,17 +149,21 @@ function StepChip({
   active,
   onClick,
   branches,
+  align = "center",
 }: {
   icon: ReactNode;
   label: string;
   active: boolean;
   onClick: () => void;
   branches?: StepBranches;
+  align?: "start" | "center" | "end";
 }) {
+  const justify =
+    align === "start" ? "justify-start" : align === "end" ? "justify-end" : "justify-center";
   return (
     <button
       onClick={onClick}
-      className={`flex-1 inline-flex items-center justify-center gap-1 py-1 px-2 rounded transition-colors ${
+      className={`flex-1 inline-flex items-center ${justify} gap-1 py-1 px-2 rounded transition-colors ${
         active
           ? "bg-secondary text-foreground"
           : "hover:bg-secondary/60 hover:text-foreground"

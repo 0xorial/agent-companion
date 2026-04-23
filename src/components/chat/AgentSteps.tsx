@@ -96,11 +96,14 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
             branches={branchesFor("action")}
             onBranchChange={onChangeFor("action")}
           />
-          {trailing && <span className="ml-auto flex items-center">{trailing}</span>}
         </div>
 
         {expanded === "context" && (
           <ExpandedShell>
+            <BranchSwitcherPanel
+              branches={branchesFor("context")}
+              onChange={onChangeFor("context")}
+            />
             <div className="text-[10px] text-muted-foreground">
               {req.promptTokens} input tokens
             </div>
@@ -111,12 +114,20 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
 
         {expanded === "reasoning" && (
           <ExpandedShell>
+            <BranchSwitcherPanel
+              branches={branchesFor("reasoning")}
+              onChange={onChangeFor("reasoning")}
+            />
             <ReasoningBody request={req} message={message} onFork={onFork} onClose={() => setExpanded(null)} />
           </ExpandedShell>
         )}
 
         {expanded === "action" && (
           <ExpandedShell>
+            <BranchSwitcherPanel
+              branches={branchesFor("action")}
+              onChange={onChangeFor("action")}
+            />
             <div className="text-xs text-foreground/90">{actionLabel}</div>
             {hasTools && (
               <div className="text-[10px] text-muted-foreground">
@@ -126,6 +137,7 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
           </ExpandedShell>
         )}
       </div>
+      {trailing}
     </div>
   );
 }

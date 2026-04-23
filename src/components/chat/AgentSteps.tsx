@@ -1,10 +1,9 @@
 import { ReactNode, useState } from "react";
-import { ChatMessage, LLMRequest, ModelPreset, StepBranches } from "@/types/agent";
+import { ChatMessage, LLMRequest, ModelPreset, StepBranches, AgentStepKind } from "@/types/agent";
 import {
-  ChevronRight,
+  ChevronDown,
   FileText,
   Sparkles,
-  Zap,
   Pencil,
   GitBranch,
   X,
@@ -28,78 +27,149 @@ interface AgentStepsProps {
 }
 
 /**
- * Renders an agent turn as three sequential steps:
- *   1. Context  — what was sent to the LLM (system + prompt)
- *   2. Reasoning — the LLM call itself (model, tokens, response)
- *   3. Action    — what the agent did with the response (reply or tool call)
+ * Renders an agent turn as a compact single-row pipeline of three steps:
+ *   1. Context  — what was sent to the LLM
+ *   2. Reasoning — the LLM call itself
+ *   3. Action    — what the agent did with the response
+ *
+ * Clicking a step expands it inline; only one step is expanded at a time.
  */
 export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
   const req = message.llmRequest;
+  const [expanded, setExpanded] = useState<AgentStepKind | null>(null);
+
   if (!req) return null;
 
   const hasTools = (message.toolCalls?.length ?? 0) > 0;
   const actionLabel = hasTools
-    ? `Called ${message.toolCalls!.length === 1 ? message.toolCalls![0].toolName : `${message.toolCalls!.length} tools`}`
+    ? `Called ${
+        message.toolCalls!.length === 1
+          ? message.toolCalls![0].toolName
+          : `${message.toolCalls!.length} tools`
+      }`
     : "Replied to user";
 
   const sb = message.stepBranches;
 
+  const toggle = (kind: AgentStepKind) =>
+    setExpanded((cur) => (cur === kind ? null : kind));
+
   return (
     <div className="max-w-3xl mx-auto px-3">
-      <div className="border-l-2 border-border/60 pl-3 my-1.5 space-y-0.5">
-        <ContextStep request={req} branches={sb?.context} />
-        <ReasoningStep
-          request={req}
-          message={message}
-          onFork={onFork}
-          trailing={trailing}
-          branches={sb?.reasoning}
-        />
-        <ActionStep
-          icon={hasTools ? <Wrench className="w-3 h-3" /> : <MessageSquare className="w-3 h-3" />}
-          label={actionLabel}
-          branches={sb?.action}
-        />
+      <div className="border-l-2 border-border/60 pl-3 my-1.5">
+        <div className="flex items-center gap-1 flex-wrap text-[11px] text-muted-foreground py-0.5">
+          <StepChip
+            icon={<FileText className="w-3 h-3" />}
+            label="Context"
+            active={expanded === "context"}
+            onClick={() => toggle("context")}
+            branches={sb?.context}
+          />
+          <Connector />
+          <StepChip
+            icon={<Sparkles className="w-3 h-3" />}
+            label="Reason"
+            active={expanded === "reasoning"}
+            onClick={() => toggle("reasoning")}
+            branches={sb?.reasoning}
+          />
+          <Connector />
+          <StepChip
+            icon={hasTools ? <Wrench className="w-3 h-3" /> : <MessageSquare className="w-3 h-3" />}
+            label={hasTools ? "Tool" : "Reply"}
+            active={expanded === "action"}
+            onClick={() => toggle("action")}
+            branches={sb?.action}
+          />
+          {trailing && <span className="ml-auto flex items-center">{trailing}</span>}
+        </div>
+
+        {expanded === "context" && (
+          <ExpandedShell>
+            <div className="text-[10px] text-muted-foreground">
+              {req.promptTokens} input tokens
+            </div>
+            <ReadOnlySection label="System prompt" value={req.systemPrompt} />
+            <ReadOnlySection label="Prompt" value={req.prompt} />
+          </ExpandedShell>
+        )}
+
+        {expanded === "reasoning" && (
+          <ExpandedShell>
+            <ReasoningBody request={req} message={message} onFork={onFork} onClose={() => setExpanded(null)} />
+          </ExpandedShell>
+        )}
+
+        {expanded === "action" && (
+          <ExpandedShell>
+            <div className="text-xs text-foreground/90">{actionLabel}</div>
+            {hasTools && (
+              <div className="text-[10px] text-muted-foreground">
+                See the tool call below for arguments and result.
+              </div>
+            )}
+          </ExpandedShell>
+        )}
       </div>
     </div>
   );
 }
 
-/* ---------------- Step 1: Context ---------------- */
+/* ---------------- Compact chip ---------------- */
 
-function ContextStep({ request, branches }: { request: LLMRequest; branches?: StepBranches }) {
-  const [open, setOpen] = useState(false);
+function StepChip({
+  icon,
+  label,
+  active,
+  onClick,
+  branches,
+}: {
+  icon: ReactNode;
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  branches?: StepBranches;
+}) {
   return (
-    <StepShell
-      open={open}
-      onToggle={() => setOpen(!open)}
-      icon={<FileText className="w-3 h-3" />}
-      label="Prepared context"
-      meta={`${request.promptTokens} input tok`}
-      trailing={<StepBranchIndicator branches={branches} />}
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1 py-0.5 px-1.5 rounded transition-colors ${
+        active
+          ? "bg-secondary text-foreground"
+          : "hover:bg-secondary/60 hover:text-foreground"
+      }`}
     >
-      <ReadOnlySection label="System prompt" value={request.systemPrompt} />
-      <ReadOnlySection label="Prompt" value={request.prompt} />
-    </StepShell>
+      {icon}
+      <span className="font-medium">{label}</span>
+      <StepBranchIndicator branches={branches} />
+      <ChevronDown
+        className={`w-3 h-3 transition-transform opacity-60 ${active ? "rotate-180" : ""}`}
+      />
+    </button>
   );
 }
 
-/* ---------------- Step 2: Reasoning (editable / forkable) ---------------- */
+function Connector() {
+  return <span className="opacity-30">→</span>;
+}
 
-function ReasoningStep({
+function ExpandedShell({ children }: { children: ReactNode }) {
+  return <div className="mt-1.5 ml-1 space-y-2 text-xs">{children}</div>;
+}
+
+/* ---------------- Reasoning body (with edit/fork) ---------------- */
+
+function ReasoningBody({
   request,
-  message,
+  message: _message,
   onFork,
-  trailing,
-  branches,
+  onClose,
 }: {
   request: LLMRequest;
   message: ChatMessage;
   onFork?: AgentStepsProps["onFork"];
-  trailing?: ReactNode;
-  branches?: StepBranches;
+  onClose: () => void;
 }) {
-  const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
 
   const [systemPrompt, setSystemPrompt] = useState(request.systemPrompt ?? "");
@@ -119,7 +189,7 @@ function ReasoningStep({
       preset: { temperature, maxTokens, topP },
     });
     setEditing(false);
-    setOpen(false);
+    onClose();
   };
 
   const handleCancel = () => {
@@ -133,188 +203,111 @@ function ReasoningStep({
     setEditing(false);
   };
 
-  return (
-    <StepShell
-      open={open}
-      onToggle={() => setOpen(!open)}
-      icon={<Sparkles className="w-3 h-3" />}
-      label="Queried model"
-      meta={`${request.model} · ${request.completionTokens} out tok · ${request.durationMs}ms`}
-      trailing={
-        <>
-          <StepBranchIndicator branches={branches} />
-          {trailing}
-          {open && !editing && onFork && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setEditing(true);
-              }}
-              className="ml-auto flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors py-0.5 px-1.5 rounded hover:bg-secondary"
-              title="Edit & fork conversation"
-            >
-              <Pencil className="w-3 h-3" />
-              Edit
-            </button>
-          )}
-        </>
-      }
-    >
-      {editing ? (
-        <>
-          <Field label="Model">
+  if (editing) {
+    return (
+      <>
+        <Field label="Model">
+          <Input value={model} onChange={(e) => setModel(e.target.value)} className="h-7 text-xs" />
+        </Field>
+        <div className="grid grid-cols-3 gap-2">
+          <Field label="Temp">
             <Input
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
+              type="number"
+              step="0.1"
+              value={temperature}
+              onChange={(e) => setTemperature(parseFloat(e.target.value))}
               className="h-7 text-xs"
             />
           </Field>
-          <div className="grid grid-cols-3 gap-2">
-            <Field label="Temp">
-              <Input
-                type="number"
-                step="0.1"
-                value={temperature}
-                onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                className="h-7 text-xs"
-              />
-            </Field>
-            <Field label="Max tokens">
-              <Input
-                type="number"
-                value={maxTokens}
-                onChange={(e) => setMaxTokens(parseInt(e.target.value))}
-                className="h-7 text-xs"
-              />
-            </Field>
-            <Field label="Top P">
-              <Input
-                type="number"
-                step="0.05"
-                value={topP}
-                onChange={(e) => setTopP(parseFloat(e.target.value))}
-                className="h-7 text-xs"
-              />
-            </Field>
-          </div>
-          <Field label="System prompt">
-            <Textarea
-              value={systemPrompt}
-              onChange={(e) => setSystemPrompt(e.target.value)}
-              className="text-xs min-h-[60px] font-mono"
+          <Field label="Max tokens">
+            <Input
+              type="number"
+              value={maxTokens}
+              onChange={(e) => setMaxTokens(parseInt(e.target.value))}
+              className="h-7 text-xs"
             />
           </Field>
-          <Field label="Prompt">
-            <Textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              className="text-xs min-h-[80px] font-mono"
+          <Field label="Top P">
+            <Input
+              type="number"
+              step="0.05"
+              value={topP}
+              onChange={(e) => setTopP(parseFloat(e.target.value))}
+              className="h-7 text-xs"
             />
           </Field>
-          <Field label="Response">
-            <Textarea
-              value={response}
-              onChange={(e) => setResponse(e.target.value)}
-              className="text-xs min-h-[100px] font-mono"
-            />
-          </Field>
-          <div className="flex items-center gap-2 pt-1">
-            <button
-              onClick={handleSaveFork}
-              className="flex items-center gap-1.5 text-[11px] bg-primary text-primary-foreground hover:bg-primary/90 transition-colors py-1 px-2.5 rounded"
-            >
-              <GitBranch className="w-3 h-3" />
-              Save & fork conversation
-            </button>
-            <button
-              onClick={handleCancel}
-              className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors py-1 px-2 rounded hover:bg-secondary"
-            >
-              <X className="w-3 h-3" />
-              Cancel
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          <ReadOnlySection label="Raw response" value={request.response} />
-          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground pt-1">
-            <span>prompt: {request.promptTokens}t</span>
-            <span>completion: {request.completionTokens}t</span>
-            {request.preset && (
-              <>
-                <span>temp: {request.preset.temperature}</span>
-                <span>max: {request.preset.maxTokens}</span>
-                <span>top_p: {request.preset.topP}</span>
-              </>
-            )}
-          </div>
-        </>
-      )}
-    </StepShell>
-  );
-}
-
-/* ---------------- Step 3: Action ---------------- */
-
-function ActionStep({
-  icon,
-  label,
-  branches,
-}: {
-  icon: ReactNode;
-  label: string;
-  branches?: StepBranches;
-}) {
-  return (
-    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground py-0.5">
-      <span className="w-3 h-3 inline-block" />
-      {icon}
-      <span className="font-medium">{label}</span>
-      <StepBranchIndicator branches={branches} />
-    </div>
-  );
-}
-
-/* ---------------- Shared step UI ---------------- */
-
-function StepShell({
-  open,
-  onToggle,
-  icon,
-  label,
-  meta,
-  trailing,
-  children,
-}: {
-  open: boolean;
-  onToggle: () => void;
-  icon: ReactNode;
-  label: string;
-  meta?: string;
-  trailing?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <div>
-      <div className="flex items-center gap-1.5">
-        <button
-          onClick={onToggle}
-          className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors py-0.5"
-        >
-          <ChevronRight
-            className={`w-3 h-3 transition-transform ${open ? "rotate-90" : ""}`}
+        </div>
+        <Field label="System prompt">
+          <Textarea
+            value={systemPrompt}
+            onChange={(e) => setSystemPrompt(e.target.value)}
+            className="text-xs min-h-[60px] font-mono"
           />
-          {icon}
-          <span className="font-medium">{label}</span>
-          {meta && <span className="opacity-60">· {meta}</span>}
-        </button>
-        {trailing}
+        </Field>
+        <Field label="Prompt">
+          <Textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            className="text-xs min-h-[80px] font-mono"
+          />
+        </Field>
+        <Field label="Response">
+          <Textarea
+            value={response}
+            onChange={(e) => setResponse(e.target.value)}
+            className="text-xs min-h-[100px] font-mono"
+          />
+        </Field>
+        <div className="flex items-center gap-2 pt-1">
+          <button
+            onClick={handleSaveFork}
+            className="flex items-center gap-1.5 text-[11px] bg-primary text-primary-foreground hover:bg-primary/90 transition-colors py-1 px-2.5 rounded"
+          >
+            <GitBranch className="w-3 h-3" />
+            Save & fork conversation
+          </button>
+          <button
+            onClick={handleCancel}
+            className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors py-1 px-2 rounded hover:bg-secondary"
+          >
+            <X className="w-3 h-3" />
+            Cancel
+          </button>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground">
+        <span>{request.model}</span>
+        <span>{request.completionTokens} out tok</span>
+        <span>{request.durationMs}ms</span>
+        {request.preset && (
+          <>
+            <span>temp: {request.preset.temperature}</span>
+            <span>max: {request.preset.maxTokens}</span>
+            <span>top_p: {request.preset.topP}</span>
+          </>
+        )}
+        {onFork && (
+          <button
+            onClick={() => setEditing(true)}
+            className="ml-auto flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors py-0.5 px-1.5 rounded hover:bg-secondary"
+            title="Edit & fork conversation"
+          >
+            <Pencil className="w-3 h-3" />
+            Edit
+          </button>
+        )}
       </div>
-      {open && <div className="mt-1.5 ml-4 space-y-2 text-xs">{children}</div>}
-    </div>
+      <ReadOnlySection label="Raw response" value={request.response} />
+    </>
   );
 }
+
+/* ---------------- Shared ---------------- */
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

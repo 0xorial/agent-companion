@@ -158,7 +158,7 @@ function StepChip({
     >
       {icon}
       <span className="font-medium">{label}</span>
-      <StepBranchIndicator branches={branches} />
+      <StepBranchIndicator branches={branches} onChange={onBranchChange} />
       <ChevronDown
         className={`w-3 h-3 transition-transform opacity-60 ${active ? "rotate-180" : ""}`}
       />

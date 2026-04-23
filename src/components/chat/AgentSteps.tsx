@@ -67,9 +67,9 @@ export function AgentSteps({ message, onFork }: AgentStepsProps) {
     setSelOverrides((s) => ({ ...s, [kind]: newIdx }));
 
   return (
-    <div className="max-w-3xl mx-auto px-3">
+    <div className="w-full px-3">
       <div className="border-l-2 border-border/60 pl-3 my-1.5">
-        <div className="flex items-center gap-1 flex-wrap text-[11px] text-muted-foreground py-0.5">
+        <div className="flex items-stretch gap-2 text-[11px] text-muted-foreground py-0.5 w-full">
           <StepChip
             icon={<FileText className="w-3 h-3" />}
             label="Context"
@@ -156,7 +156,7 @@ function StepChip({
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-1 py-0.5 px-1.5 rounded transition-colors ${
+      className={`flex-1 inline-flex items-center justify-center gap-1 py-1 px-2 rounded transition-colors ${
         active
           ? "bg-secondary text-foreground"
           : "hover:bg-secondary/60 hover:text-foreground"
@@ -174,7 +174,7 @@ function StepChip({
 }
 
 function Connector() {
-  return <span className="opacity-30">→</span>;
+  return <span className="opacity-30 self-center">→</span>;
 }
 
 function ExpandedShell({ children }: { children: ReactNode }) {

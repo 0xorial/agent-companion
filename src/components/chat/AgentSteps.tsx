@@ -69,7 +69,7 @@ export function AgentSteps({ message, onFork }: AgentStepsProps) {
   return (
     <div className="w-full px-3">
       <div className="border-l-2 border-border/60 pl-3 my-1.5">
-        <div className="flex items-stretch gap-2 text-[11px] text-muted-foreground py-0.5 w-full">
+        <div className="flex items-stretch justify-between gap-2 text-[11px] text-muted-foreground py-0.5 w-full">
           <StepChip
             icon={<FileText className="w-3 h-3" />}
             label="Context"

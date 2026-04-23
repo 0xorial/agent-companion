@@ -134,7 +134,6 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
           </ExpandedShell>
         )}
       </div>
-      {trailing}
     </div>
   );
 }

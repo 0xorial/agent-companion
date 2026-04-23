@@ -83,18 +83,6 @@ export function ChatMessageList({
                     ? (edited) => onForkAt(msg.id, edited)
                     : undefined
                 }
-                trailing={
-                  conversation && siblings.length > 1 && onSwitchToLeaf ? (
-                    <BranchSwitcher
-                      index={siblingIndex}
-                      total={siblings.length}
-                      onChange={(newIdx) => {
-                        const target = siblings[newIdx];
-                        onSwitchToLeaf(deepestDescendant(conversation, target.id));
-                      }}
-                    />
-                  ) : null
-                }
               />
             )}
             <ChatMessage

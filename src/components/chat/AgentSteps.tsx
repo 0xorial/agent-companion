@@ -23,7 +23,6 @@ interface AgentStepsProps {
     model: string;
     preset: ModelPreset;
   }) => void;
-  trailing?: ReactNode;
 }
 
 /**
@@ -33,8 +32,9 @@ interface AgentStepsProps {
  *   3. Action    — what the agent did with the response
  *
  * Clicking a step expands it inline; only one step is expanded at a time.
+ * Each expanded panel shows a switcher of available branches for that step.
  */
-export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
+export function AgentSteps({ message, onFork }: AgentStepsProps) {
   const req = message.llmRequest;
   const [expanded, setExpanded] = useState<AgentStepKind | null>(null);
   // Local per-step variant selection overrides (UI-only for now).
@@ -76,7 +76,6 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
             active={expanded === "context"}
             onClick={() => toggle("context")}
             branches={branchesFor("context")}
-            onBranchChange={onChangeFor("context")}
           />
           <Connector />
           <StepChip
@@ -85,7 +84,6 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
             active={expanded === "reasoning"}
             onClick={() => toggle("reasoning")}
             branches={branchesFor("reasoning")}
-            onBranchChange={onChangeFor("reasoning")}
           />
           <Connector />
           <StepChip
@@ -94,13 +92,15 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
             active={expanded === "action"}
             onClick={() => toggle("action")}
             branches={branchesFor("action")}
-            onBranchChange={onChangeFor("action")}
           />
-          {trailing && <span className="ml-auto flex items-center">{trailing}</span>}
         </div>
 
         {expanded === "context" && (
           <ExpandedShell>
+            <BranchSwitcherPanel
+              branches={branchesFor("context")}
+              onChange={onChangeFor("context")}
+            />
             <div className="text-[10px] text-muted-foreground">
               {req.promptTokens} input tokens
             </div>
@@ -111,12 +111,20 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
 
         {expanded === "reasoning" && (
           <ExpandedShell>
+            <BranchSwitcherPanel
+              branches={branchesFor("reasoning")}
+              onChange={onChangeFor("reasoning")}
+            />
             <ReasoningBody request={req} message={message} onFork={onFork} onClose={() => setExpanded(null)} />
           </ExpandedShell>
         )}
 
         {expanded === "action" && (
           <ExpandedShell>
+            <BranchSwitcherPanel
+              branches={branchesFor("action")}
+              onChange={onChangeFor("action")}
+            />
             <div className="text-xs text-foreground/90">{actionLabel}</div>
             {hasTools && (
               <div className="text-[10px] text-muted-foreground">
@@ -130,7 +138,7 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
   );
 }
 
-/* ---------------- Compact chip ---------------- */
+/* ---------------- Compact chip (display-only) ---------------- */
 
 function StepChip({
   icon,
@@ -138,14 +146,12 @@ function StepChip({
   active,
   onClick,
   branches,
-  onBranchChange,
 }: {
   icon: ReactNode;
   label: string;
   active: boolean;
   onClick: () => void;
   branches?: StepBranches;
-  onBranchChange?: (newIdx: number) => void;
 }) {
   return (
     <button
@@ -158,7 +164,8 @@ function StepChip({
     >
       {icon}
       <span className="font-medium">{label}</span>
-      <StepBranchIndicator branches={branches} onChange={onBranchChange} />
+      {/* Display-only: no onChange, switching happens in the expanded panel. */}
+      <StepBranchIndicator branches={branches} />
       <ChevronDown
         className={`w-3 h-3 transition-transform opacity-60 ${active ? "rotate-180" : ""}`}
       />
@@ -172,6 +179,51 @@ function Connector() {
 
 function ExpandedShell({ children }: { children: ReactNode }) {
   return <div className="mt-1.5 ml-1 space-y-2 text-xs">{children}</div>;
+}
+
+/* ---------------- Branch switcher (inside expanded panel) ---------------- */
+
+function BranchSwitcherPanel({
+  branches,
+  onChange,
+}: {
+  branches?: StepBranches;
+  onChange: (newIdx: number) => void;
+}) {
+  if (!branches || branches.variants.length <= 1) return null;
+  const { variants, selectedIndex } = branches;
+  return (
+    <div className="rounded border border-border/60 bg-muted/30 p-2 space-y-1.5">
+      <div className="flex items-center justify-between">
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+          Variants ({variants.length})
+        </div>
+        <div className="text-[10px] text-muted-foreground">
+          Showing {selectedIndex + 1} of {variants.length}
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {variants.map((v, idx) => {
+          const isActive = idx === selectedIndex;
+          return (
+            <button
+              key={v.id}
+              onClick={() => onChange(idx)}
+              className={`text-[11px] px-1.5 py-0.5 rounded border transition-colors ${
+                isActive
+                  ? "bg-primary/15 border-primary/40 text-foreground"
+                  : "bg-background border-border/60 text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
+              title={v.label}
+            >
+              <span className="font-mono tabular-nums opacity-60 mr-1">#{idx + 1}</span>
+              {v.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 /* ---------------- Reasoning body (with edit/fork) ---------------- */

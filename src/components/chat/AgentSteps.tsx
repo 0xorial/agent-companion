@@ -76,7 +76,6 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
             active={expanded === "context"}
             onClick={() => toggle("context")}
             branches={branchesFor("context")}
-            onBranchChange={onChangeFor("context")}
           />
           <Connector />
           <StepChip
@@ -85,7 +84,6 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
             active={expanded === "reasoning"}
             onClick={() => toggle("reasoning")}
             branches={branchesFor("reasoning")}
-            onBranchChange={onChangeFor("reasoning")}
           />
           <Connector />
           <StepChip
@@ -94,7 +92,6 @@ export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
             active={expanded === "action"}
             onClick={() => toggle("action")}
             branches={branchesFor("action")}
-            onBranchChange={onChangeFor("action")}
           />
         </div>
 

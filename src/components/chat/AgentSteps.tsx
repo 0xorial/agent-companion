@@ -23,7 +23,6 @@ interface AgentStepsProps {
     model: string;
     preset: ModelPreset;
   }) => void;
-  trailing?: ReactNode;
 }
 
 /**
@@ -33,8 +32,9 @@ interface AgentStepsProps {
  *   3. Action    — what the agent did with the response
  *
  * Clicking a step expands it inline; only one step is expanded at a time.
+ * Each expanded panel shows a switcher of available branches for that step.
  */
-export function AgentSteps({ message, onFork, trailing }: AgentStepsProps) {
+export function AgentSteps({ message, onFork }: AgentStepsProps) {
   const req = message.llmRequest;
   const [expanded, setExpanded] = useState<AgentStepKind | null>(null);
   // Local per-step variant selection overrides (UI-only for now).

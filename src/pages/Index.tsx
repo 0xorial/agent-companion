@@ -295,6 +295,9 @@ const Index = () => {
         {/* Input */}
         <ChatInput
           onSend={handleSend}
+          onEnqueue={handleEnqueue}
+          onSteer={handleSteer}
+          isAgentWorking={isAgentWorking}
           agents={mockAgents}
           tools={tools}
           models={mockModels}

@@ -23,6 +23,8 @@ import {
   Wrench,
   Activity,
   GitBranch,
+  Loader2,
+  Play,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 

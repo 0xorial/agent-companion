@@ -95,6 +95,21 @@ const Index = () => {
     updateConv(activeConvId, (c) => appendMessage(c, msg));
   };
 
+  const handleEnqueue = (content: string) => {
+    setQueuedMessages((prev) => [...prev, content]);
+  };
+
+  const handleSteer = (content: string) => {
+    if (!activeConvId) return;
+    const msg: ChatMessageType = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: `[steer] ${content}`,
+      timestamp: Date.now(),
+    };
+    updateConv(activeConvId, (c) => appendMessage(c, msg));
+  };
+
   const handlePermissionChange = (toolId: string, permission: ToolPermission) => {
     setTools((prev) => prev.map((t) => (t.id === toolId ? { ...t, permission } : t)));
   };

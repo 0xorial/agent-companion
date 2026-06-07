@@ -8,6 +8,8 @@ import {
   X,
   Cpu,
   SlidersHorizontal,
+  ListPlus,
+  Navigation,
 } from "lucide-react";
 import { AgentDefinition, ToolDefinition, ModelPreset } from "@/types/agent";
 import {

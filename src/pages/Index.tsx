@@ -39,6 +39,8 @@ const Index = () => {
   const [selectedToolIds, setSelectedToolIds] = useState<string[]>(mockTools.map((t) => t.id));
   const [modelOverride, setModelOverride] = useState<string | null>(null);
   const [presetOverride, setPresetOverride] = useState<Partial<ModelPreset>>({});
+  const [isAgentWorking, setIsAgentWorking] = useState(false);
+  const [queuedMessages, setQueuedMessages] = useState<string[]>([]);
 
   const activeConv = conversations.find((c) => c.id === activeConvId) ?? null;
   const activePath = useMemo(

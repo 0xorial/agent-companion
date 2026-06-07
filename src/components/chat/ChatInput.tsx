@@ -21,6 +21,9 @@ import { Slider } from "@/components/ui/slider";
 
 interface ChatInputProps {
   onSend: (message: string, attachments?: File[]) => void;
+  onEnqueue?: (message: string, attachments?: File[]) => void;
+  onSteer?: (message: string, attachments?: File[]) => void;
+  isAgentWorking?: boolean;
   disabled?: boolean;
   agents: AgentDefinition[];
   tools: ToolDefinition[];

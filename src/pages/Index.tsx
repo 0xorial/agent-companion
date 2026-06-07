@@ -23,6 +23,8 @@ import {
   Wrench,
   Activity,
   GitBranch,
+  Loader2,
+  Play,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -37,6 +39,8 @@ const Index = () => {
   const [selectedToolIds, setSelectedToolIds] = useState<string[]>(mockTools.map((t) => t.id));
   const [modelOverride, setModelOverride] = useState<string | null>(null);
   const [presetOverride, setPresetOverride] = useState<Partial<ModelPreset>>({});
+  const [isAgentWorking, setIsAgentWorking] = useState(false);
+  const [queuedMessages, setQueuedMessages] = useState<string[]>([]);
 
   const activeConv = conversations.find((c) => c.id === activeConvId) ?? null;
   const activePath = useMemo(
@@ -86,6 +90,21 @@ const Index = () => {
       id: crypto.randomUUID(),
       role: "user",
       content,
+      timestamp: Date.now(),
+    };
+    updateConv(activeConvId, (c) => appendMessage(c, msg));
+  };
+
+  const handleEnqueue = (content: string) => {
+    setQueuedMessages((prev) => [...prev, content]);
+  };
+
+  const handleSteer = (content: string) => {
+    if (!activeConvId) return;
+    const msg: ChatMessageType = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: `[steer] ${content}`,
       timestamp: Date.now(),
     };
     updateConv(activeConvId, (c) => appendMessage(c, msg));
@@ -229,6 +248,30 @@ const Index = () => {
             {activeConv?.title ?? "No conversation"}
           </span>
           <div className="ml-auto flex items-center gap-1">
+            <button
+              onClick={() => setIsAgentWorking((v) => !v)}
+              title={isAgentWorking ? "Stop simulated agent run" : "Simulate agent working"}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors ${
+                isAgentWorking
+                  ? "bg-warning/15 text-warning hover:bg-warning/25"
+                  : "text-muted-foreground hover:bg-secondary"
+              }`}
+            >
+              {isAgentWorking ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Working
+                  {queuedMessages.length > 0 && (
+                    <span className="text-[10px] opacity-80">· {queuedMessages.length} queued</span>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Play className="w-3.5 h-3.5" />
+                  Idle
+                </>
+              )}
+            </button>
             <ThemeToggle />
             <button
               onClick={() => setRightOpen(!rightOpen)}
@@ -252,6 +295,9 @@ const Index = () => {
         {/* Input */}
         <ChatInput
           onSend={handleSend}
+          onEnqueue={handleEnqueue}
+          onSteer={handleSteer}
+          isAgentWorking={isAgentWorking}
           agents={mockAgents}
           tools={tools}
           models={mockModels}

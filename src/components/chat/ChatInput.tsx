@@ -8,6 +8,8 @@ import {
   X,
   Cpu,
   SlidersHorizontal,
+  ListPlus,
+  Navigation,
 } from "lucide-react";
 import { AgentDefinition, ToolDefinition, ModelPreset } from "@/types/agent";
 import {
@@ -19,6 +21,9 @@ import { Slider } from "@/components/ui/slider";
 
 interface ChatInputProps {
   onSend: (message: string, attachments?: File[]) => void;
+  onEnqueue?: (message: string, attachments?: File[]) => void;
+  onSteer?: (message: string, attachments?: File[]) => void;
+  isAgentWorking?: boolean;
   disabled?: boolean;
   agents: AgentDefinition[];
   tools: ToolDefinition[];
@@ -35,6 +40,9 @@ interface ChatInputProps {
 
 export function ChatInput({
   onSend,
+  onEnqueue,
+  onSteer,
+  isAgentWorking = false,
   disabled,
   agents,
   tools,
@@ -64,18 +72,37 @@ export function ChatInput({
     }
   }, [value]);
 
-  const handleSubmit = () => {
-    if ((!value.trim() && attachments.length === 0) || disabled) return;
-    onSend(value.trim(), attachments.length > 0 ? attachments : undefined);
+  const hasContent = value.trim().length > 0 || attachments.length > 0;
+  const canSubmit = hasContent && !disabled;
+
+  const submit = (kind: "send" | "enqueue" | "steer") => {
+    if (!canSubmit) return;
+    const text = value.trim();
+    const files = attachments.length > 0 ? attachments : undefined;
+    if (kind === "steer" && onSteer) onSteer(text, files);
+    else if (kind === "enqueue" && onEnqueue) onEnqueue(text, files);
+    else onSend(text, files);
     setValue("");
     setAttachments([]);
   };
 
+  // Primary action when agent is working = enqueue; otherwise = send.
+  // Both are triggered by Shift+Enter. Cmd/Ctrl+Enter = steer (only while working).
+  const primaryKind: "send" | "enqueue" = isAgentWorking ? "enqueue" : "send";
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key !== "Enter") return;
+    const isMod = e.metaKey || e.ctrlKey;
+    if (isMod && isAgentWorking) {
       e.preventDefault();
-      handleSubmit();
+      submit("steer");
+      return;
     }
+    if (e.shiftKey) {
+      e.preventDefault();
+      submit(primaryKind);
+    }
+    // plain Enter => newline (default)
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,6 +115,17 @@ export function ChatInput({
   const removeAttachment = (index: number) => {
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
+
+  const primaryIcon =
+    primaryKind === "enqueue" ? (
+      <ListPlus className="w-4 h-4" />
+    ) : (
+      <SendHorizonal className="w-4 h-4" />
+    );
+  const primaryLabel =
+    primaryKind === "enqueue"
+      ? "Enqueue message (Shift+Enter)"
+      : "Send message (Shift+Enter)";
 
   return (
     <div className="border-t bg-card/50 backdrop-blur-sm p-3">
@@ -120,18 +158,37 @@ export function ChatInput({
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Send a message..."
+            placeholder={
+              isAgentWorking
+                ? "Agent is working — Shift+Enter to enqueue, ⌘+Enter to steer…"
+                : "Send a message…  (Shift+Enter)"
+            }
             disabled={disabled}
             rows={1}
-            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground resize-none p-3 pr-12 outline-none scrollbar-thin max-h-[200px]"
+            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground resize-none p-3 pr-24 outline-none scrollbar-thin max-h-[200px]"
           />
-          <button
-            onClick={handleSubmit}
-            disabled={(!value.trim() && attachments.length === 0) || disabled}
-            className="absolute right-2 bottom-2 p-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-30 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
-          >
-            <SendHorizonal className="w-4 h-4" />
-          </button>
+          <div className="absolute right-2 bottom-2 flex items-center gap-1">
+            {isAgentWorking && (
+              <button
+                onClick={() => submit("steer")}
+                disabled={!canSubmit}
+                title="Steer the running agent (⌘/Ctrl+Enter)"
+                aria-label="Steer agent"
+                className="p-1.5 rounded-md border border-warning/40 text-warning bg-warning/10 hover:bg-warning/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <Navigation className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={() => submit(primaryKind)}
+              disabled={!canSubmit}
+              title={primaryLabel}
+              aria-label={primaryLabel}
+              className="p-1.5 rounded-md bg-primary text-primary-foreground disabled:opacity-30 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
+            >
+              {primaryIcon}
+            </button>
+          </div>
         </div>
 
         {/* Toolbar */}

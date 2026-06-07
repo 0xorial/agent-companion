@@ -248,6 +248,30 @@ const Index = () => {
             {activeConv?.title ?? "No conversation"}
           </span>
           <div className="ml-auto flex items-center gap-1">
+            <button
+              onClick={() => setIsAgentWorking((v) => !v)}
+              title={isAgentWorking ? "Stop simulated agent run" : "Simulate agent working"}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors ${
+                isAgentWorking
+                  ? "bg-warning/15 text-warning hover:bg-warning/25"
+                  : "text-muted-foreground hover:bg-secondary"
+              }`}
+            >
+              {isAgentWorking ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Working
+                  {queuedMessages.length > 0 && (
+                    <span className="text-[10px] opacity-80">· {queuedMessages.length} queued</span>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Play className="w-3.5 h-3.5" />
+                  Idle
+                </>
+              )}
+            </button>
             <ThemeToggle />
             <button
               onClick={() => setRightOpen(!rightOpen)}

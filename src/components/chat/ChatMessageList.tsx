@@ -24,6 +24,7 @@ interface ChatMessageListProps {
   onSwitchToLeaf?: (leafId: string) => void;
   isAgentWorking?: boolean;
   onOpenStepDetails?: (messageId: string) => void;
+  onOpenToolDetails?: (messageId: string, toolCallId: string) => void;
 }
 
 export function ChatMessageList({
@@ -35,6 +36,7 @@ export function ChatMessageList({
   onSwitchToLeaf,
   isAgentWorking,
   onOpenStepDetails,
+  onOpenToolDetails,
 }: ChatMessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastUserMsgRef = useRef<HTMLDivElement>(null);

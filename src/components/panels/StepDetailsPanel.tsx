@@ -75,9 +75,9 @@ export function StepDetailsPanel({ message, onClose }: StepDetailsPanelProps) {
               <span className="font-medium text-foreground">{tc.toolName}</span>
               <span className="ml-auto text-[10px] text-muted-foreground">{tc.status}</span>
             </div>
-            {tc.arguments && (
+            {tc.args && (
               <pre className="text-[10px] font-mono whitespace-pre-wrap break-words text-muted-foreground">
-                {typeof tc.arguments === "string" ? tc.arguments : JSON.stringify(tc.arguments, null, 2)}
+                {typeof tc.args === "string" ? tc.args : JSON.stringify(tc.args, null, 2)}
               </pre>
             )}
             {tc.result && (

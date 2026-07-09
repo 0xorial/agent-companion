@@ -46,6 +46,13 @@ export function ChatMessageList({
     return -1;
   })();
 
+  const lastAssistantWithReqIndex = (() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "assistant" && messages[i].llmRequest) return i;
+    }
+    return -1;
+  })();
+
   useEffect(() => {
     if (lastUserMsgRef.current && scrollRef.current) {
       const container = scrollRef.current;

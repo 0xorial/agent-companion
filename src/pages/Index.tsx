@@ -4,6 +4,7 @@ import { ChatMessageList } from "@/components/chat/ChatMessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ActivityPanel } from "@/components/panels/ActivityPanel";
 import { BranchTree } from "@/components/panels/BranchTree";
+import { StepDetailsPanel } from "@/components/panels/StepDetailsPanel";
 import { ToolRegistry } from "@/components/tools/ToolRegistry";
 import { mockConversations, mockTools, mockAgents, mockModels } from "@/data/mockData";
 import {

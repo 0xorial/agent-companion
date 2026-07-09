@@ -52,6 +52,8 @@ export function ChatMessage({ message, onToolApprove, onToolDeny, branchSwitcher
               toolCall={tc}
               onApprove={onToolApprove}
               onDeny={onToolDeny}
+              collapsed={collapseToolCalls}
+              onOpenDetails={onOpenToolDetails ? () => onOpenToolDetails(tc.id) : undefined}
             />
           ))}
         </div>

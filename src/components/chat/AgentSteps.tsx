@@ -23,6 +23,8 @@ interface AgentStepsProps {
     model: string;
     preset: ModelPreset;
   }) => void;
+  collapsed?: boolean;
+  onOpenDetails?: () => void;
 }
 
 /**

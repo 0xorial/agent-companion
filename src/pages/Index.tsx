@@ -292,6 +292,12 @@ const Index = () => {
           onToolDeny={(id) => handleToolDecision(id, false)}
           onForkAt={handleForkAt}
           onSwitchToLeaf={handleSwitchToLeaf}
+          isAgentWorking={isAgentWorking}
+          onOpenStepDetails={(id) => {
+            setFocusedStepMessageId(id);
+            setRightTab("step");
+            setRightOpen(true);
+          }}
         />
 
         {/* Input */}

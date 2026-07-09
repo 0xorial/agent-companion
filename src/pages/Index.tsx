@@ -35,7 +35,8 @@ const Index = () => {
   const [tools, setTools] = useState<ToolDefinition[]>(mockTools);
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
-  const [rightTab, setRightTab] = useState<"activity" | "branches" | "tools">("branches");
+  const [rightTab, setRightTab] = useState<"activity" | "branches" | "tools" | "step">("branches");
+  const [focusedStepMessageId, setFocusedStepMessageId] = useState<string | null>(null);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(mockAgents[0]?.id ?? null);
   const [selectedToolIds, setSelectedToolIds] = useState<string[]>(mockTools.map((t) => t.id));
   const [modelOverride, setModelOverride] = useState<string | null>(null);

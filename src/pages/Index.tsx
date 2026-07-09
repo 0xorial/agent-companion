@@ -346,6 +346,14 @@ const Index = () => {
             icon={<Wrench className="w-3.5 h-3.5" />}
             label="Tools"
           />
+          {focusedStepMessageId && (
+            <TabButton
+              active={rightTab === "step"}
+              onClick={() => setRightTab("step")}
+              icon={<Bot className="w-3.5 h-3.5" />}
+              label="Step"
+            />
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto scrollbar-thin">
@@ -358,6 +366,14 @@ const Index = () => {
             />
           ) : rightTab === "activity" ? (
             <ActivityPanel messages={activePath} />
+          ) : rightTab === "step" ? (
+            <StepDetailsPanel
+              message={focusedStepMessageId ? activeConv?.nodes[focusedStepMessageId] ?? null : null}
+              onClose={() => {
+                setFocusedStepMessageId(null);
+                setRightTab("branches");
+              }}
+            />
           ) : (
             <ToolRegistry tools={tools} onPermissionChange={handlePermissionChange} />
           )}

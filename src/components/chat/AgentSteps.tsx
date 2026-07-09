@@ -23,6 +23,8 @@ interface AgentStepsProps {
     model: string;
     preset: ModelPreset;
   }) => void;
+  collapsed?: boolean;
+  onOpenDetails?: () => void;
 }
 
 /**
@@ -34,7 +36,7 @@ interface AgentStepsProps {
  * Clicking a step expands it inline; only one step is expanded at a time.
  * Each expanded panel shows a switcher of available branches for that step.
  */
-export function AgentSteps({ message, onFork }: AgentStepsProps) {
+export function AgentSteps({ message, onFork, collapsed, onOpenDetails }: AgentStepsProps) {
   const req = message.llmRequest;
   const [expanded, setExpanded] = useState<AgentStepKind | null>(null);
   // Local per-step variant selection overrides (UI-only for now).
@@ -65,6 +67,26 @@ export function AgentSteps({ message, onFork }: AgentStepsProps) {
 
   const onChangeFor = (kind: AgentStepKind) => (newIdx: number) =>
     setSelOverrides((s) => ({ ...s, [kind]: newIdx }));
+
+  if (collapsed) {
+    return (
+      <div className="w-full px-3">
+        <button
+          onClick={onOpenDetails}
+          className="group border-l-2 border-border/40 pl-3 my-1 py-0.5 flex items-center gap-2 text-[10px] text-muted-foreground/70 hover:text-foreground hover:border-border transition-colors w-full"
+          title="Show step details"
+        >
+          <FileText className="w-2.5 h-2.5" />
+          <span className="opacity-40">→</span>
+          <Sparkles className="w-2.5 h-2.5" />
+          <span className="opacity-40">→</span>
+          {hasTools ? <Wrench className="w-2.5 h-2.5" /> : <MessageSquare className="w-2.5 h-2.5" />}
+          <span className="ml-1 truncate">{actionLabel}</span>
+          <span className="ml-auto font-mono opacity-60">{req.durationMs}ms</span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full px-3">

@@ -22,6 +22,8 @@ interface ChatMessageListProps {
     }
   ) => void;
   onSwitchToLeaf?: (leafId: string) => void;
+  isAgentWorking?: boolean;
+  onOpenStepDetails?: (messageId: string) => void;
 }
 
 export function ChatMessageList({
@@ -31,6 +33,8 @@ export function ChatMessageList({
   onToolDeny,
   onForkAt,
   onSwitchToLeaf,
+  isAgentWorking,
+  onOpenStepDetails,
 }: ChatMessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastUserMsgRef = useRef<HTMLDivElement>(null);
@@ -38,6 +42,13 @@ export function ChatMessageList({
   const lastUserMsgIndex = (() => {
     for (let i = messages.length - 1; i >= 0; i--) {
       if (messages[i].role === "user") return i;
+    }
+    return -1;
+  })();
+
+  const lastAssistantWithReqIndex = (() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "assistant" && messages[i].llmRequest) return i;
     }
     return -1;
   })();
@@ -83,6 +94,8 @@ export function ChatMessageList({
                     ? (edited) => onForkAt(msg.id, edited)
                     : undefined
                 }
+                collapsed={!(isAgentWorking && i === lastAssistantWithReqIndex)}
+                onOpenDetails={onOpenStepDetails ? () => onOpenStepDetails(msg.id) : undefined}
               />
             )}
             <ChatMessage

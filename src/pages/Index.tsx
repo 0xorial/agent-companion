@@ -4,6 +4,7 @@ import { ChatMessageList } from "@/components/chat/ChatMessageList";
 import { ChatInput } from "@/components/chat/ChatInput";
 import { ActivityPanel } from "@/components/panels/ActivityPanel";
 import { BranchTree } from "@/components/panels/BranchTree";
+import { StepDetailsPanel } from "@/components/panels/StepDetailsPanel";
 import { ToolRegistry } from "@/components/tools/ToolRegistry";
 import { mockConversations, mockTools, mockAgents, mockModels } from "@/data/mockData";
 import {
@@ -34,7 +35,8 @@ const Index = () => {
   const [tools, setTools] = useState<ToolDefinition[]>(mockTools);
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
-  const [rightTab, setRightTab] = useState<"activity" | "branches" | "tools">("branches");
+  const [rightTab, setRightTab] = useState<"activity" | "branches" | "tools" | "step">("branches");
+  const [focusedStepMessageId, setFocusedStepMessageId] = useState<string | null>(null);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(mockAgents[0]?.id ?? null);
   const [selectedToolIds, setSelectedToolIds] = useState<string[]>(mockTools.map((t) => t.id));
   const [modelOverride, setModelOverride] = useState<string | null>(null);
@@ -290,6 +292,12 @@ const Index = () => {
           onToolDeny={(id) => handleToolDecision(id, false)}
           onForkAt={handleForkAt}
           onSwitchToLeaf={handleSwitchToLeaf}
+          isAgentWorking={isAgentWorking}
+          onOpenStepDetails={(id) => {
+            setFocusedStepMessageId(id);
+            setRightTab("step");
+            setRightOpen(true);
+          }}
         />
 
         {/* Input */}
@@ -338,6 +346,14 @@ const Index = () => {
             icon={<Wrench className="w-3.5 h-3.5" />}
             label="Tools"
           />
+          {focusedStepMessageId && (
+            <TabButton
+              active={rightTab === "step"}
+              onClick={() => setRightTab("step")}
+              icon={<Bot className="w-3.5 h-3.5" />}
+              label="Step"
+            />
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto scrollbar-thin">
@@ -350,6 +366,14 @@ const Index = () => {
             />
           ) : rightTab === "activity" ? (
             <ActivityPanel messages={activePath} />
+          ) : rightTab === "step" ? (
+            <StepDetailsPanel
+              message={focusedStepMessageId ? activeConv?.nodes[focusedStepMessageId] ?? null : null}
+              onClose={() => {
+                setFocusedStepMessageId(null);
+                setRightTab("branches");
+              }}
+            />
           ) : (
             <ToolRegistry tools={tools} onPermissionChange={handlePermissionChange} />
           )}

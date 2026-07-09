@@ -9,9 +9,11 @@ interface ChatMessageProps {
   onToolApprove?: (toolCallId: string) => void;
   onToolDeny?: (toolCallId: string) => void;
   branchSwitcher?: ReactNode;
+  collapseToolCalls?: boolean;
+  onOpenToolDetails?: (toolCallId: string) => void;
 }
 
-export function ChatMessage({ message, onToolApprove, onToolDeny, branchSwitcher }: ChatMessageProps) {
+export function ChatMessage({ message, onToolApprove, onToolDeny, branchSwitcher, collapseToolCalls, onOpenToolDetails }: ChatMessageProps) {
   const isUser = message.role === "user";
 
   return (

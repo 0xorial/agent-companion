@@ -94,6 +94,8 @@ export function ChatMessageList({
                     ? (edited) => onForkAt(msg.id, edited)
                     : undefined
                 }
+                collapsed={!(isAgentWorking && i === lastAssistantWithReqIndex)}
+                onOpenDetails={onOpenStepDetails ? () => onOpenStepDetails(msg.id) : undefined}
               />
             )}
             <ChatMessage

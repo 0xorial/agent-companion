@@ -24,6 +24,7 @@ interface ChatMessageListProps {
   onSwitchToLeaf?: (leafId: string) => void;
   isAgentWorking?: boolean;
   onOpenStepDetails?: (messageId: string) => void;
+  onOpenToolDetails?: (messageId: string, toolCallId: string) => void;
 }
 
 export function ChatMessageList({
@@ -35,6 +36,7 @@ export function ChatMessageList({
   onSwitchToLeaf,
   isAgentWorking,
   onOpenStepDetails,
+  onOpenToolDetails,
 }: ChatMessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastUserMsgRef = useRef<HTMLDivElement>(null);
@@ -102,6 +104,10 @@ export function ChatMessageList({
               message={msg}
               onToolApprove={onToolApprove}
               onToolDeny={onToolDeny}
+              collapseToolCalls={!(isAgentWorking && i === lastAssistantWithReqIndex)}
+              onOpenToolDetails={
+                onOpenToolDetails ? (tcId) => onOpenToolDetails(msg.id, tcId) : undefined
+              }
               branchSwitcher={
                 conversation && siblings.length > 1 && onSwitchToLeaf && !(msg.role === "assistant" && msg.llmRequest) ? (
                   <BranchSwitcher

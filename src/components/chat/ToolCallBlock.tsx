@@ -6,6 +6,8 @@ interface ToolCallBlockProps {
   toolCall: ToolCall;
   onApprove?: (toolCallId: string) => void;
   onDeny?: (toolCallId: string) => void;
+  collapsed?: boolean;
+  onOpenDetails?: () => void;
 }
 
 const statusConfig = {
@@ -16,7 +18,7 @@ const statusConfig = {
   awaiting_approval: { icon: ShieldQuestion, label: "Awaiting approval", className: "text-warning animate-pulse-glow" },
 };
 
-export function ToolCallBlock({ toolCall, onApprove, onDeny }: ToolCallBlockProps) {
+export function ToolCallBlock({ toolCall, onApprove, onDeny, collapsed, onOpenDetails }: ToolCallBlockProps) {
   const [expanded, setExpanded] = useState(toolCall.status === "awaiting_approval");
   const config = statusConfig[toolCall.status];
   const StatusIcon = config.icon;
@@ -25,6 +27,26 @@ export function ToolCallBlock({ toolCall, onApprove, onDeny }: ToolCallBlockProp
     : null;
 
   const isAwaiting = toolCall.status === "awaiting_approval";
+
+  // Force expanded when awaiting approval (needs action) — never collapse those.
+  if (collapsed && !isAwaiting) {
+    return (
+      <button
+        onClick={onOpenDetails}
+        className="w-full flex items-center gap-2 px-2 py-1 rounded text-[11px] text-muted-foreground/80 hover:text-foreground hover:bg-secondary/60 transition-colors border border-transparent hover:border-border/50"
+        title="Show tool call details"
+      >
+        <Wrench className="w-3 h-3 text-primary/70" />
+        <span className="font-mono font-medium text-foreground/80 truncate">
+          {toolCall.toolName}
+        </span>
+        <StatusIcon className={`w-3 h-3 ml-auto ${config.className}`} />
+        {duration && (
+          <span className="text-[10px] font-mono opacity-60">{duration}</span>
+        )}
+      </button>
+    );
+  }
 
   return (
     <div className={`rounded-md border overflow-hidden ${isAwaiting ? "border-warning/40 bg-warning/5" : "bg-secondary/50"}`}>

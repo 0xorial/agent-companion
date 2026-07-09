@@ -298,6 +298,11 @@ const Index = () => {
             setRightTab("step");
             setRightOpen(true);
           }}
+          onOpenToolDetails={(msgId) => {
+            setFocusedStepMessageId(msgId);
+            setRightTab("step");
+            setRightOpen(true);
+          }}
         />
 
         {/* Input */}

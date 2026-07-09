@@ -36,7 +36,7 @@ interface AgentStepsProps {
  * Clicking a step expands it inline; only one step is expanded at a time.
  * Each expanded panel shows a switcher of available branches for that step.
  */
-export function AgentSteps({ message, onFork }: AgentStepsProps) {
+export function AgentSteps({ message, onFork, collapsed, onOpenDetails }: AgentStepsProps) {
   const req = message.llmRequest;
   const [expanded, setExpanded] = useState<AgentStepKind | null>(null);
   // Local per-step variant selection overrides (UI-only for now).

@@ -104,6 +104,10 @@ export function ChatMessageList({
               message={msg}
               onToolApprove={onToolApprove}
               onToolDeny={onToolDeny}
+              collapseToolCalls={!(isAgentWorking && i === lastAssistantWithReqIndex)}
+              onOpenToolDetails={
+                onOpenToolDetails ? (tcId) => onOpenToolDetails(msg.id, tcId) : undefined
+              }
               branchSwitcher={
                 conversation && siblings.length > 1 && onSwitchToLeaf && !(msg.role === "assistant" && msg.llmRequest) ? (
                   <BranchSwitcher

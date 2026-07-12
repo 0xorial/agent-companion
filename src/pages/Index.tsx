@@ -28,6 +28,45 @@ import {
   Play,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import type { RagStorage, RagMode } from "@/components/chat/RagPreinjection";
+
+const mockRagStorages: RagStorage[] = [
+  {
+    id: "docs",
+    name: "product-docs",
+    description: "Internal product documentation",
+    docCount: 1284,
+    sampleChunks: [
+      "Agents can be branched at any step: context, reasoning, or action. Each branch is a sibling node under the same parent message.",
+      "Tool permissions are `allow`, `ask`, or `forbid`. `ask` requires explicit user approval before the tool executes.",
+      "The active conversation path is computed by walking parentId links from the current headId up to a root.",
+      "Model presets include temperature, maxTokens, and topP. They can be overridden per-message at send time.",
+    ],
+  },
+  {
+    id: "code",
+    name: "codebase",
+    description: "Indexed source code",
+    docCount: 8420,
+    sampleChunks: [
+      "function getActivePath(conv: Conversation) — walks parentId chain from headId to the root, returning messages in chronological order.",
+      "ChatInput handles Shift+Enter to send, Cmd+Enter to steer while the agent is working.",
+      "StepDetailsPanel renders system prompt, model preset, and per-tool call details for a focused assistant turn.",
+      "RagPreinjection scores mock chunks by keyword overlap for the direct-mode preview.",
+    ],
+  },
+  {
+    id: "chat",
+    name: "chat-history",
+    description: "Past conversations",
+    docCount: 312,
+    sampleChunks: [
+      "Previously discussed: collapsing tool calls to a single-line strip after the turn completes.",
+      "User preference: first item on the left, last on the right in the agent steps strip.",
+      "Steering messages are prefixed with [steer] and appended to the active branch.",
+    ],
+  },
+];
 
 const Index = () => {
   const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
@@ -43,6 +82,9 @@ const Index = () => {
   const [presetOverride, setPresetOverride] = useState<Partial<ModelPreset>>({});
   const [isAgentWorking, setIsAgentWorking] = useState(false);
   const [queuedMessages, setQueuedMessages] = useState<string[]>([]);
+  const [enabledRagIds, setEnabledRagIds] = useState<string[]>(["docs"]);
+  const [ragMode, setRagMode] = useState<RagMode>("direct");
+  const [ragTopK, setRagTopK] = useState(3);
 
   const activeConv = conversations.find((c) => c.id === activeConvId) ?? null;
   const activePath = useMemo(

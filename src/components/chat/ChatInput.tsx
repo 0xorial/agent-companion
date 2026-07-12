@@ -37,6 +37,13 @@ interface ChatInputProps {
   onModelOverride: (model: string | null) => void;
   presetOverride: Partial<ModelPreset>;
   onPresetOverride: (preset: Partial<ModelPreset>) => void;
+  ragStorages: RagStorage[];
+  enabledRagIds: string[];
+  onToggleRag: (id: string) => void;
+  ragMode: RagMode;
+  onRagModeChange: (m: RagMode) => void;
+  ragTopK: number;
+  onRagTopKChange: (n: number) => void;
 }
 
 export function ChatInput({

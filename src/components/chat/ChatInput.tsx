@@ -63,6 +63,13 @@ export function ChatInput({
   onModelOverride,
   presetOverride,
   onPresetOverride,
+  ragStorages,
+  enabledRagIds,
+  onToggleRag,
+  ragMode,
+  onRagModeChange,
+  ragTopK,
+  onRagTopKChange,
 }: ChatInputProps) {
   const [value, setValue] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);

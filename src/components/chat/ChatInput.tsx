@@ -145,6 +145,17 @@ export function ChatInput({
   return (
     <div className="border-t bg-card/50 backdrop-blur-sm p-3">
       <div className="max-w-3xl mx-auto space-y-2">
+        {/* RAG preinjection */}
+        <RagPreinjection
+          storages={ragStorages}
+          enabledStorageIds={enabledRagIds}
+          onToggleStorage={onToggleRag}
+          mode={ragMode}
+          onModeChange={onRagModeChange}
+          topK={ragTopK}
+          onTopKChange={onRagTopKChange}
+          query={value}
+        />
         {/* Attachments preview */}
         {attachments.length > 0 && (
           <div className="flex flex-wrap gap-1.5 px-1">

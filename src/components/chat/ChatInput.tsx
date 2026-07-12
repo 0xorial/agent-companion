@@ -18,6 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
+import { RagPreinjection, RagStorage, RagMode } from "./RagPreinjection";
 
 interface ChatInputProps {
   onSend: (message: string, attachments?: File[]) => void;

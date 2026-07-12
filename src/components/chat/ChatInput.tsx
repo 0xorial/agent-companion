@@ -18,6 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
+import { RagPreinjection, RagStorage, RagMode } from "./RagPreinjection";
 
 interface ChatInputProps {
   onSend: (message: string, attachments?: File[]) => void;
@@ -36,6 +37,13 @@ interface ChatInputProps {
   onModelOverride: (model: string | null) => void;
   presetOverride: Partial<ModelPreset>;
   onPresetOverride: (preset: Partial<ModelPreset>) => void;
+  ragStorages: RagStorage[];
+  enabledRagIds: string[];
+  onToggleRag: (id: string) => void;
+  ragMode: RagMode;
+  onRagModeChange: (m: RagMode) => void;
+  ragTopK: number;
+  onRagTopKChange: (n: number) => void;
 }
 
 export function ChatInput({
@@ -55,6 +63,13 @@ export function ChatInput({
   onModelOverride,
   presetOverride,
   onPresetOverride,
+  ragStorages,
+  enabledRagIds,
+  onToggleRag,
+  ragMode,
+  onRagModeChange,
+  ragTopK,
+  onRagTopKChange,
 }: ChatInputProps) {
   const [value, setValue] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -130,6 +145,17 @@ export function ChatInput({
   return (
     <div className="border-t bg-card/50 backdrop-blur-sm p-3">
       <div className="max-w-3xl mx-auto space-y-2">
+        {/* RAG preinjection */}
+        <RagPreinjection
+          storages={ragStorages}
+          enabledStorageIds={enabledRagIds}
+          onToggleStorage={onToggleRag}
+          mode={ragMode}
+          onModeChange={onRagModeChange}
+          topK={ragTopK}
+          onTopKChange={onRagTopKChange}
+          query={value}
+        />
         {/* Attachments preview */}
         {attachments.length > 0 && (
           <div className="flex flex-wrap gap-1.5 px-1">

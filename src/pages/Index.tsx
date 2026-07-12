@@ -364,6 +364,17 @@ const Index = () => {
           onModelOverride={setModelOverride}
           presetOverride={presetOverride}
           onPresetOverride={setPresetOverride}
+          ragStorages={mockRagStorages}
+          enabledRagIds={enabledRagIds}
+          onToggleRag={(id) =>
+            setEnabledRagIds((prev) =>
+              prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+            )
+          }
+          ragMode={ragMode}
+          onRagModeChange={setRagMode}
+          ragTopK={ragTopK}
+          onRagTopKChange={setRagTopK}
         />
       </div>
 

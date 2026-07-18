@@ -440,6 +440,8 @@ const Index = () => {
                 setRightTab("branches");
               }}
             />
+          ) : rightTab === "isolation" ? (
+            <IsolationView />
           ) : (
             <ToolRegistry tools={tools} onPermissionChange={handlePermissionChange} />
           )}

@@ -5,6 +5,7 @@ import { ChatInput } from "@/components/chat/ChatInput";
 import { ActivityPanel } from "@/components/panels/ActivityPanel";
 import { BranchTree } from "@/components/panels/BranchTree";
 import { StepDetailsPanel } from "@/components/panels/StepDetailsPanel";
+import { IsolationView } from "@/components/panels/IsolationView";
 import { ToolRegistry } from "@/components/tools/ToolRegistry";
 import { mockConversations, mockTools, mockAgents, mockModels } from "@/data/mockData";
 import {
@@ -24,6 +25,7 @@ import {
   Wrench,
   Activity,
   GitBranch,
+  Shield,
   Loader2,
   Play,
 } from "lucide-react";
@@ -74,7 +76,7 @@ const Index = () => {
   const [tools, setTools] = useState<ToolDefinition[]>(mockTools);
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
-  const [rightTab, setRightTab] = useState<"activity" | "branches" | "tools" | "step">("branches");
+  const [rightTab, setRightTab] = useState<"activity" | "branches" | "tools" | "step" | "isolation">("branches");
   const [focusedStepMessageId, setFocusedStepMessageId] = useState<string | null>(null);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(mockAgents[0]?.id ?? null);
   const [selectedToolIds, setSelectedToolIds] = useState<string[]>(mockTools.map((t) => t.id));
@@ -404,6 +406,12 @@ const Index = () => {
             icon={<Wrench className="w-3.5 h-3.5" />}
             label="Tools"
           />
+          <TabButton
+            active={rightTab === "isolation"}
+            onClick={() => setRightTab("isolation")}
+            icon={<Shield className="w-3.5 h-3.5" />}
+            label="Isolation"
+          />
           {focusedStepMessageId && (
             <TabButton
               active={rightTab === "step"}
@@ -432,6 +440,8 @@ const Index = () => {
                 setRightTab("branches");
               }}
             />
+          ) : rightTab === "isolation" ? (
+            <IsolationView />
           ) : (
             <ToolRegistry tools={tools} onPermissionChange={handlePermissionChange} />
           )}

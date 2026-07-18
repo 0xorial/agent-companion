@@ -24,6 +24,7 @@ import {
   Wrench,
   Activity,
   GitBranch,
+  Shield,
   Loader2,
   Play,
 } from "lucide-react";

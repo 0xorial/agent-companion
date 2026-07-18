@@ -405,6 +405,7 @@ const Index = () => {
             onClick={() => setRightTab("tools")}
             icon={<Wrench className="w-3.5 h-3.5" />}
             label="Tools"
+          />
           <TabButton
             active={rightTab === "isolation"}
             onClick={() => setRightTab("isolation")}
